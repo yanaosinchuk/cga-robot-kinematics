@@ -1,5 +1,5 @@
 """
-Aufgabe 4 (revised) -- all apices Q on the parallel L|| to P1P2 through P0 such that
+All apices Q on the parallel L|| to P1P2 through P0 such that
 the triangle P1 P2 Q is isosceles.
 
 Three loci, one line:
@@ -12,13 +12,7 @@ With h = signed distance of L|| from the base line:
     |h| = d                     : 3  (both circles tangent to L||)
     |h| > d                     : 1
     h = 0                       : degenerate (every triangle collapses)
-
-Changes w.r.t. the submitted version
-  * the degenerate case "P0 on the base line" is detected
-  * tangency is reported instead of being hidden in 'disc >= 0'
-  * coincident apices (equilateral case) are merged, so no point is counted twice
-  * every apex carries the locus it comes from and an isosceles residual
-  * the window is sized from the data instead of the fixed box [-10,200]^2
+    
 """
 import math
 import sys
