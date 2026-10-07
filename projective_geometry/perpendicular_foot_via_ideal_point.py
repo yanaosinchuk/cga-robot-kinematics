@@ -1,5 +1,5 @@
 """
-Aufgabe 2 (revised) -- the foot of a perpendicular constructed through an ideal point.
+The foot of a perpendicular constructed through an ideal point.
 
 Construction (homogeneous coordinates, libcfcg):
     L   = p0 x p1                        base line (a, b, c)
@@ -9,11 +9,6 @@ Construction (homogeneous coordinates, libcfcg):
     n2  = S1 x p2                        perpendicular through P2
     F   = n2 x L                         foot of the perpendicular
 
-Changes w.r.t. the submitted version
-  * the perpendiculars are no longer called "bisectors"
-  * S1 is *verified* to be ideal with a scale-aware test |w| <= tol * ||S1||
-  * degenerate input (P0 = P1) is rejected before the base line is formed
-  * the post-condition (F on L, P2F perpendicular to L) is printed as a residual
 """
 import math
 import sys
