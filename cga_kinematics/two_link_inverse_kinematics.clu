@@ -1,12 +1,4 @@
-// Aufgabe 2 (revised): two-link arm, elbow from a circle-plane meet
-// ---------------------------------------------------------------------------
-// Changes w.r.t. the submitted version
-//  * sliders are defined before they are used
-//  * reachability is classified before the point pair is factorised
-//    (P.P < 0 means |A| > 2: no real elbow exists)
-//  * the helper plane U^H^A^einf degenerates when A lies on the vertical axis;
-//    in that case the x-axis is used as the second direction
-//  * points are normalised by division by (-X.einf) before heights are compared
+// two-link arm, elbow from a circle-plane meet
 // ---------------------------------------------------------------------------
 
 _BGColor = White;
