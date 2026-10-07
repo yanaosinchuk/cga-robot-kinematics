@@ -1,10 +1,8 @@
 """
-Tests for the revised course programs and the reference implementations.
+Tests for the reference implementations.
 
     python3 -m unittest discover -s code/tests -v
-
-* The revised libcfcg scripts are executed headlessly against a stub of the
-  library and their printed results are compared with geometry.py.
+    
 * The revised CLUCalc constructions are executed in the NumPy CGA engine.
 """
 import io
