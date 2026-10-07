@@ -1,5 +1,5 @@
 """
-Aufgabe 1 (revised) -- circumcircle as the meet of two perpendicular bisectors.
+Circumcircle as the meet of two perpendicular bisectors.
 
 Construction (homogeneous coordinates, libcfcg):
     m_ij   = midpoint of P_i P_j                      (finite point, w = 1)
@@ -7,12 +7,6 @@ Construction (homogeneous coordinates, libcfcg):
     b_ij   = m_ij x v_ij                              (perpendicular bisector)
     c      = b_01 x b_12                              (circumcentre, homogeneous)
 
-Changes w.r.t. the submitted version
-  * scale-aware collinearity test (relative to the edge lengths) instead of an
-    absolute threshold 1e-3, which depended on the units of the DAT file
-  * the homogeneous centre is classified (finite / ideal) before dehomogenising
-  * a residual  max_i | |C - P_i| - r | / r  is printed as a post-condition
-  * the drawing window is sized from the circumcircle, not from fixed offsets
 """
 import math
 import sys
