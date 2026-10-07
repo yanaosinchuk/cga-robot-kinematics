@@ -1,0 +1,99 @@
+// Aufgabe 3 (revised): three-link arm U-E1-E2-A with unit links
+// ---------------------------------------------------------------------------
+// What the submitted script actually constructs is an isosceles trapezoid
+// U, E1, E2, A with E1E2 parallel to UA:
+//     E1 on bisector(U, W-) ^ sphere(U,1),   E2 on bisector(U, W+) ^ sphere(A,1),
+// where W+- are the two points of the line UA at distance 1 from A.
+// Two weaknesses of that formulation:
+//   (i)  its correctness depends on the (implicit) ordering of N_Pp1/N_Pp2;
+//        with the opposite ordering only targets with |A| <= 1 are reachable;
+//   (ii) at |A| = 1 the point W- coincides with U, the bisector U - W- is the
+//        zero vector and the construction breaks down (error ~ eps/| |A|-1 |)
+//        although the arm itself is perfectly regular there.
+// Revised construction:
+//   * W+ is selected explicitly as the point FARTHER from U (|W+| = |A| + 1 >= 1),
+//   * E2 = upper point of  bisector(U, W+) ^ sphere(A,1) ^ helper plane,
+//   * E1 = mirror image of E2 in the bisector plane of U and A:
+//         E1 = -M * E2 / M,   M = U - A   (reflection versor).
+// This is exact for every target with 0 < |A| <= 3.
+// ---------------------------------------------------------------------------
+
+_BGColor = White;
+:DRAW_POINT_AS_SPHERE;
+SetLineWidth(4);
+DefVarsN3();
+SetMode(N3_OPNS);
+
+// target (the reach of three unit links is 3)
+?a = Slider("x", -3, 3, 0.05, 0.5);
+?b = Slider("y", -3, 3, 0.05, 0.5);
+?c = Slider("z", -3, 3, 0.05, -1);
+
+:U = VecN3(0,0,0) : Black;                                   // shoulder
+:A = VecN3(a,b,c) : Black;                                   // end point
+:Kugel1 = SphereN3(U,1) : Color(0.4, 0.4, 0.2, 0.2);          // first link (display)
+:Kugel2 = SphereN3(A,1) : Color(0.02, 0.02, 0.4, 0.2);        // last link
+
+// ground plate (display only)
+:X = VecN3(2,0,0) : Blue;
+:Y = VecN3(0,0,2) : Blue;
+:Bodenplatte = 4*(U^X^Y^einf) : Color(0.35, 0.0, 0.1, 0.3);
+
+// vertical helper plane through U and A (fallback on the vertical axis)
+if (a*a + c*c > 0.000001)
+{H = VecN3(0,1,0)}
+else
+{H = VecN3(1,0,0)}
+:HE = 10*(U^H^A^einf) : Color(0.96, 0.90, 0.70, 0.3);
+
+// auxiliary points W+- on the line UA at distance 1 from A
+:Gerade = 4*(U^A^einf);
+GKA = *(*Gerade ^ *Kugel2);
+Pp1 = ( sqrt(GKA . GKA) + GKA) / (einf . GKA);
+Pp2 = (-sqrt(GKA . GKA) + GKA) / (einf . GKA);
+N_Pp1 = Pp1 / (-(Pp1 . einf));
+N_Pp2 = Pp2 / (-(Pp2 . einf));
+
+// explicit choice: W+ is the point farther from U  (-U.X = |x|^2 / 2)
+if (-(U . N_Pp1) > -(U . N_Pp2))
+{Wplus = N_Pp1}
+else
+{Wplus = N_Pp2}
+:Wplus;
+
+// E2: distance 1 from A and equidistant from U and W+
+:GelenkEbene = *(U - Wplus) : Color(0.5, 0.6, 0.7, 0.3);   // bisector plane of U and W+
+:SKGE = *(*GelenkEbene ^ *Kugel2) : Black;
+SPP = *(*SKGE ^ *HE);
+?Klass = SPP . SPP;          // < 0: target out of reach (|A| > 3)
+
+if (Klass < 0)
+{
+  ?Unreachable = 1;
+}
+else
+{
+  Pp21 = ( sqrt(Klass) + SPP) / (einf . SPP);
+  Pp22 = (-sqrt(Klass) + SPP) / (einf . SPP);
+  N_Pp21 = Pp21 / (-(Pp21 . einf));
+  N_Pp22 = Pp22 / (-(Pp22 . einf));
+
+  // policy: upper configuration
+  if (N_Pp21 . e2 > N_Pp22 . e2)
+  {elbow2 = N_Pp21}
+  else
+  {elbow2 = N_Pp22}
+
+  // E1: reflection of E2 in the bisector plane of U and A
+  M = U - A;
+  elbow1 = -M * elbow2 / M;
+
+  :elbow1;
+  :elbow2;
+  ?elbow1;
+  ?elbow2;
+
+  DrawLine(U, elbow1);
+  DrawLine(elbow1, elbow2);
+  DrawLine(elbow2, A);
+}

@@ -1,0 +1,87 @@
+// Aufgabe 1 (revised): tripod from a three-sphere meet + fourth support
+// ---------------------------------------------------------------------------
+// Changes w.r.t. the submitted version
+//  * duplicated header removed
+//  * the selected apex "Spitze" is actually used for the legs, the sphere of the
+//    fourth leg and the helper plane (the original used N_Pp2 regardless of the
+//    selection; this was only correct if N_Pp2 happened to be the upper point)
+//  * the fourth leg is drawn to the selected outer foot "AussenPunkt"
+//    (the original drew it to N_Pp4 regardless of the selection)
+//  * points are normalised by division by (-X.einf); the extraction formula
+//    returns weight -1, so the original multiplication gave the same result only
+//    because |weight| = 1
+//  * ASCII identifiers (no "ss"-ligature) for portability
+// ---------------------------------------------------------------------------
+
+_BGColor = White;
+:DRAW_POINT_AS_SPHERE;
+SetLineWidth(4);
+DefVarsN3();
+SetMode(N3_OPNS);
+
+:U = VecN3(0,0,0) : Black;                              // origin
+
+// base points A, B, C of the tripod (ground plane y = 0)
+:A = VecN3(-1,0,0) : Color(0.35, 0.0, 0.1, 1.0);
+:B = VecN3( 1,0,0) : Color(0.4, 0.4, 0.2, 1.0);
+:C = VecN3( 0,0,2) : Color(0.02, 0.02, 0.4, 1.0);
+:Bodenplatte = 4*(A^B^C^einf) : Color(0.02, 0.02, 0.4, 0.2);
+
+// one sphere per leg: centre = foot, radius = leg length
+:Kugel1 = SphereN3(A, 2.69) : Color(0.35, 0.0, 0.1, 0.1);
+:Kugel2 = SphereN3(B, 1.8)  : Color(0.4, 0.4, 0.2, 0.1);
+:Kugel3 = SphereN3(C, 1.5)  : Color(0.02, 0.02, 0.4, 0.1);
+
+// (1) meet of three spheres = point pair S+ ^ S-
+S_points = *(*Kugel1 ^ *Kugel2 ^ *Kugel3);
+?Klass1 = S_points . S_points;       // > 0: two real points, 0: tangent, < 0: imaginary
+
+// (2) factorise the point pair and normalise both points
+Pp1 = ( sqrt(S_points . S_points) + S_points) / (einf . S_points);
+Pp2 = (-sqrt(S_points . S_points) + S_points) / (einf . S_points);
+N_Pp1 = Pp1 / (-(Pp1 . einf));
+N_Pp2 = Pp2 / (-(Pp2 . einf));
+
+// (3) policy: the apex is the point with the larger height (y = e2)
+if (N_Pp1 . e2 > N_Pp2 . e2)
+{Spitze = N_Pp1}
+else
+{Spitze = N_Pp2}
+:Spitze;
+?Spitze;
+
+// legs
+DrawLine(Spitze, A);
+DrawLine(Spitze, B);
+DrawLine(Spitze, C);
+
+// (4) fourth leg of length 1.1: its possible feet form the circle
+//     sphere(Spitze, 1.1) ^ ground plane
+:KugelSpitze = SphereN3(Spitze, 1.1) : Color(1, 1, 0, 0.1);
+:Schnittkreis = *(*Bodenplatte ^ *KugelSpitze) : Black;
+
+// (5) helper plane tau: vertical plane through A and the apex
+//     (S+ and S- are mirror images, so the plane A^S+^S-^einf is vertical)
+:Senkrecht_Pl = A ^ N_Pp1 ^ N_Pp2 ^ einf : Color(0.0, 0.3, 0.2, 0.3);
+
+// (6) circle ^ plane = point pair of candidate feet
+FussPunkte = *(*Senkrecht_Pl ^ *Schnittkreis);
+?Klass2 = FussPunkte . FussPunkte;
+Pp3 = ( sqrt(FussPunkte . FussPunkte) + FussPunkte) / (einf . FussPunkte);
+Pp4 = (-sqrt(FussPunkte . FussPunkte) + FussPunkte) / (einf . FussPunkte);
+N_Pp3 = Pp3 / (-(Pp3 . einf));
+N_Pp4 = Pp4 / (-(Pp4 . einf));
+
+// (7) policy: the foot farther from A. For this geometry it is the only
+//     candidate that brings the projected apex inside the support polygon
+//     (stability margin +0.304 instead of -0.459, see paper Section 8.2)
+?dis3 = sqrt(-2*(A . N_Pp3));
+?dis4 = sqrt(-2*(A . N_Pp4));
+if (dis3 > dis4)
+{AussenPunkt = N_Pp3}
+else
+{AussenPunkt = N_Pp4}
+:AussenPunkt;
+?AussenPunkt;
+
+DrawLine(Spitze, AussenPunkt);
