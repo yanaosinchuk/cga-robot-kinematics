@@ -1,6 +1,6 @@
 """
-homework_cga.py -- line-by-line transcriptions of the CLUCalc homework scripts
-(Hausaufgabe1-3) into the NumPy CGA engine of cga.py, in their ORIGINAL form
+cga_constructions.py -- line-by-line transcriptions of the CLUCalc homework scripts
+into the NumPy CGA engine of cga.py, in their ORIGINAL form 
 and in the REVISED form proposed in the paper (Appendix B).
 
 Every function returns Euclidean coordinates so that the results can be
