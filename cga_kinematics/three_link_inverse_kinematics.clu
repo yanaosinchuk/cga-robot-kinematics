@@ -1,21 +1,4 @@
-// Aufgabe 3 (revised): three-link arm U-E1-E2-A with unit links
-// ---------------------------------------------------------------------------
-// What the submitted script actually constructs is an isosceles trapezoid
-// U, E1, E2, A with E1E2 parallel to UA:
-//     E1 on bisector(U, W-) ^ sphere(U,1),   E2 on bisector(U, W+) ^ sphere(A,1),
-// where W+- are the two points of the line UA at distance 1 from A.
-// Two weaknesses of that formulation:
-//   (i)  its correctness depends on the (implicit) ordering of N_Pp1/N_Pp2;
-//        with the opposite ordering only targets with |A| <= 1 are reachable;
-//   (ii) at |A| = 1 the point W- coincides with U, the bisector U - W- is the
-//        zero vector and the construction breaks down (error ~ eps/| |A|-1 |)
-//        although the arm itself is perfectly regular there.
-// Revised construction:
-//   * W+ is selected explicitly as the point FARTHER from U (|W+| = |A| + 1 >= 1),
-//   * E2 = upper point of  bisector(U, W+) ^ sphere(A,1) ^ helper plane,
-//   * E1 = mirror image of E2 in the bisector plane of U and A:
-//         E1 = -M * E2 / M,   M = U - A   (reflection versor).
-// This is exact for every target with 0 < |A| <= 3.
+// three-link arm U-E1-E2-A with unit links
 // ---------------------------------------------------------------------------
 
 _BGColor = White;
