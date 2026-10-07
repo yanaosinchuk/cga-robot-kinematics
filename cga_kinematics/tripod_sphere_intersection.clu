@@ -1,16 +1,4 @@
-// Aufgabe 1 (revised): tripod from a three-sphere meet + fourth support
-// ---------------------------------------------------------------------------
-// Changes w.r.t. the submitted version
-//  * duplicated header removed
-//  * the selected apex "Spitze" is actually used for the legs, the sphere of the
-//    fourth leg and the helper plane (the original used N_Pp2 regardless of the
-//    selection; this was only correct if N_Pp2 happened to be the upper point)
-//  * the fourth leg is drawn to the selected outer foot "AussenPunkt"
-//    (the original drew it to N_Pp4 regardless of the selection)
-//  * points are normalised by division by (-X.einf); the extraction formula
-//    returns weight -1, so the original multiplication gave the same result only
-//    because |weight| = 1
-//  * ASCII identifiers (no "ss"-ligature) for portability
+// Tripod from a three-sphere meet + fourth support
 // ---------------------------------------------------------------------------
 
 _BGColor = White;
