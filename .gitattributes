@@ -1,0 +1,7 @@
+# Keep GitHub language statistics focused on the implementation.
+paper/** linguist-documentation
+results/*.tex linguist-documentation
+
+# Binary assets.
+*.png binary
+*.pdf binary
