@@ -180,15 +180,13 @@ def test_isosceles_count_matches_construction_near_special_heights():
             assert len(result.candidates) == expected
 
 
-def test_original_three_link_contains_degenerate_auxiliary_point_at_d_equal_one():
+def test_original_three_link_is_degenerate_at_d_equal_one_but_revised_is_not():
     direction = np.array([0.6, 0.3, -0.2])
     direction /= np.linalg.norm(direction)
     target = direction
 
-    with np.errstate(all="ignore"):
-        _, _, auxiliary_points = constructions.three_link_original(*target)
-
-    assert min(np.linalg.norm(point) for point in auxiliary_points) < 1e-12
+    with np.testing.assert_raises(constructions.Degenerate):
+        constructions.three_link_original(*target)
 
     reference = G.three_link_trapezoid(np.zeros(3), target).selected
     e1, e2 = constructions.three_link_revised(*target)
@@ -230,4 +228,51 @@ def test_cga_kinematics_rejects_unreachable_targets():
 
     with np.testing.assert_raises(constructions.Imaginary):
         constructions.three_link_revised(3.1, 0.0, 0.0)
+
+def test_reference_two_link_vertical_axis_uses_deterministic_fallback():
+    target = np.array([0.0, 1.5, 0.0])
+    result = G.two_link(np.zeros(3), target)
+
+    assert result.status == "regular"
+    assert result.selected[0] > 0.0
+    assert abs(result.residual) < 1e-12
+
+    cga_elbow = constructions.two_link_revised(*target)
+    np.testing.assert_allclose(cga_elbow, result.selected, atol=1e-12)
+
+
+def test_reference_three_link_vertical_axis_matches_cga_fallback():
+    target = np.array([0.0, 2.0, 0.0])
+    result = G.three_link_trapezoid(np.zeros(3), target)
+
+    assert result.status == "regular"
+    e1, e2 = constructions.three_link_revised(*target)
+    np.testing.assert_allclose(e1, result.selected[0], atol=1e-12)
+    np.testing.assert_allclose(e2, result.selected[1], atol=1e-12)
+
+
+def test_kinematic_tangent_boundaries_are_classified():
+    two = G.two_link(np.zeros(2), np.array([2.0, 0.0]))
+    three = G.three_link_trapezoid(np.zeros(2), np.array([3.0, 0.0]))
+
+    assert two.status == "tangent"
+    assert three.status == "tangent"
+    assert two.residual < 1e-12
+    assert three.residual < 1e-12
+
+
+def test_revised_cga_kinematics_reject_target_at_shoulder():
+    with np.testing.assert_raises(constructions.Degenerate):
+        constructions.two_link_revised(0.0, 0.0, 0.0)
+
+    with np.testing.assert_raises(constructions.Degenerate):
+        constructions.three_link_revised(0.0, 0.0, 0.0)
+
+
+def test_reference_kinematics_reject_nonpositive_link_lengths():
+    two = G.two_link(np.zeros(2), np.array([1.0, 0.0]), l1=0.0, l2=1.0)
+    three = G.three_link_trapezoid(np.zeros(2), np.array([1.0, 0.0]), l=0.0)
+
+    assert two.status == "degenerate"
+    assert three.status == "degenerate"
 
