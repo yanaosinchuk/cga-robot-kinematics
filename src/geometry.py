@@ -75,10 +75,13 @@ def collinear(a, b, c, tau: float = 1e3 * EPS) -> bool:
 
 
 # ---- Task P1: circumcircle ------------------------------------------------
-def circumcircle(P0, P1, P2) -> ConstructionResult:
+def circumcircle(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P = [np.asarray(v, float) for v in (P0, P1, P2)]
-    if collinear(*P):
-        # bisectors are parallel: their meet is the ideal point of their direction
+    span = max(1.0, *(np.linalg.norm(P[i] - P[j]) for i in range(3) for j in range(i)))
+    if any(np.linalg.norm(P[i] - P[j]) <= tau * span for i in range(3) for j in range(i)):
+        return ConstructionResult("degenerate", info={"reason": "repeated input point"})
+    if collinear(*P, tau=tau):
+        # distinct collinear points have their circumcentre at infinity
         return ConstructionResult("ideal", info={"reason": "collinear input"})
 
     def bisector(a, b):
@@ -100,7 +103,7 @@ def circumcircle(P0, P1, P2) -> ConstructionResult:
 # ---- Task P2: perpendicular foot through an ideal point --------------------
 def perpendicular_foot(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P0, P1, P2 = (np.asarray(v, float) for v in (P0, P1, P2))
-    scale = max(1.0, np.linalg.norm(P0), np.linalg.norm(P1))
+    scale = max(1.0, np.linalg.norm(P2 - P0), np.linalg.norm(P2 - P1))
     if np.linalg.norm(P1 - P0) <= tau * scale:
         return ConstructionResult("degenerate", info={"reason": "P0 and P1 coincide"})
 
@@ -129,7 +132,7 @@ def isosceles_candidates(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P0, P1, P2 = (np.asarray(v, float) for v in (P0, P1, P2))
     u = P2 - P1
     d = np.linalg.norm(u)
-    base_scale = max(1.0, np.linalg.norm(P1), np.linalg.norm(P2))
+    base_scale = max(1.0, np.linalg.norm(P0 - P1), np.linalg.norm(P0 - P2))
     if d <= tau * base_scale:
         return ConstructionResult("degenerate", info={"reason": "P1 and P2 coincide"})
 
@@ -191,28 +194,38 @@ def isosceles_count(h_over_d: float, tau: float = 1e-12) -> int:
 # --------------------------------------------------------------------------
 # Distance geometry in R^3
 # --------------------------------------------------------------------------
-def trilaterate(c, r) -> ConstructionResult:
-    """Intersection of three spheres (centres c[i], radii r[i]) via linear reduction."""
+def trilaterate(c, r, tau: float = 1e-12) -> ConstructionResult:
+    """Intersection of three spheres in R^3 via linear reduction."""
     c = np.asarray(c, float)
     r = np.asarray(r, float)
+    if c.shape != (3, 3) or r.shape != (3,):
+        raise ValueError("trilaterate expects three 3D centres and three radii")
+    if np.any(r < 0):
+        raise ValueError("sphere radii must be non-negative")
+
     A = 2 * (c[1:] - c[0])
     b = r[0] ** 2 - r[1:] ** 2 + np.sum(c[1:] ** 2, 1) - np.sum(c[0] ** 2)
-    # line of the radical axis: x = x0 + s*n
     n = np.cross(A[0], A[1])
-    if np.linalg.norm(n) <= 1e3 * EPS * np.linalg.norm(A[0]) * np.linalg.norm(A[1]):
+    nn = np.linalg.norm(n)
+    if nn <= 1e3 * EPS * np.linalg.norm(A[0]) * np.linalg.norm(A[1]):
         return ConstructionResult("degenerate", info={"reason": "collinear centres"})
+
     x0 = np.linalg.lstsq(A, b, rcond=None)[0]
-    n = n / np.linalg.norm(n)
+    n = n / nn
     w = x0 - c[0]
     B = w @ n
     Cq = w @ w - r[0] ** 2
     disc = B * B - Cq
-    if disc < -1e-12 * max(1.0, r[0] ** 2):
+    disc_tol = tau * max(1.0, r[0] ** 2, w @ w)
+    if disc < -disc_tol:
         return ConstructionResult("empty", info={"disc": disc})
+    if abs(disc) <= disc_tol:
+        disc = 0.0
+
     s = np.sqrt(max(disc, 0.0))
     X = [x0 + (-B + s) * n, x0 + (-B - s) * n]
     res = max(abs(np.linalg.norm(x - ci) - ri) for x in X for ci, ri in zip(c, r))
-    return ConstructionResult("tangent" if s == 0 else "regular", X, None, res)
+    return ConstructionResult("tangent" if disc == 0.0 else "regular", X, None, res)
 
 
 def select_max(cands, key: Callable) -> np.ndarray:
@@ -384,11 +397,11 @@ def two_link(O, T, l1=1.0, l2=1.0, up=None, tau: float = 1e-12) -> ConstructionR
         up = np.eye(dim)[1]
     v = T - O
     d = np.linalg.norm(v)
-    if d <= tau:
-        return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
-    u = v / d
     if l1 <= 0 or l2 <= 0:
         return ConstructionResult("degenerate", info={"reason": "link lengths must be positive"})
+    if d <= tau * max(l1, l2):
+        return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
+    u = v / d
     u_perp = _in_plane_perp(u, up)
     a = (l1 ** 2 - l2 ** 2 + d ** 2) / (2 * d)
     q = l1 ** 2 - a ** 2
@@ -414,10 +427,10 @@ def three_link_trapezoid(O, T, l=1.0, up=None, tau: float = 1e-12) -> Constructi
         up = np.eye(dim)[1]
     v = T - O
     d = np.linalg.norm(v)
-    if d <= tau:
-        return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
     if l <= 0:
         return ConstructionResult("degenerate", info={"reason": "link length must be positive"})
+    if d <= tau * l:
+        return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
     u = v / d
     u_perp = _in_plane_perp(u, up)
     a = 0.5 * (d - l)
