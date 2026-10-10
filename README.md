@@ -97,9 +97,9 @@ The checked-in full experiment validates the regular configurations at approxima
 | Two-link distance constraints | 10,000 | max residual $4.44\times10^{-16}$ |
 | Three-link distance constraints | 10,000 | max residual $4.44\times10^{-16}$ |
 | Isosceles-locus candidate count | 19,944 | 0 count mismatches |
-| Isosceles-locus residual | 19,944 | max residual $5.16\times10^{-15}$ |
+| Isosceles-locus residual | 19,944 | max residual $3.38\times10^{-15}$ |
 
-The strongest numerical result is the three-link singularity analysis. The original construction becomes increasingly inaccurate as $d\to1$, although the geometric three-link configuration remains regular there. The reflection-based reformulation removes that representation singularity: over the tested sequence down to $|d-1|=10^{-14}$, the revised construction stays below $6.27\times10^{-16}$ position error.
+The strongest numerical result is the three-link singularity analysis. The original construction becomes increasingly inaccurate as $d\to1$, although the geometric three-link configuration remains regular there. The reflection-based reformulation removes that representation singularity: over the tested sequence down to $|d-1|=10^{-14}$, the revised construction stays below $5.43\times10^{-16}$ position error.
 
 ![Conditioning and singularity analysis](figures/stability_analysis.png)
 
