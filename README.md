@@ -170,14 +170,6 @@ cga-robot-kinematics/
 └── requirements-dev.txt
 ~~~
 
-## Figures
-
-The repository includes publication-style figures for the principal constructions and numerical diagnostics.
-
-The isosceles-locus experiment, for example, shows how the number of admissible solutions changes as the parallel line moves relative to the base:
-
-![Isosceles-locus candidate structure](figures/isosceles_locus.png)
-
 ## Technical Report
 
 The accompanying seminar paper is:
@@ -217,7 +209,7 @@ Run the test suite from the repository root:
 python -m pytest -q
 ~~~
 
-The tests cover the G(4,1) metric signature, null-basis identities, outer-product antisymmetry, inverses and duality, conformal distance encoding, sphere incidence, point normalization, point-pair extraction, projective constructions, candidate counts, two-link and three-link kinematic constraints, tripod stability, and agreement between the revised CGA constructions and independent reference solutions.
+The tests cover the G(4,1) metric signature, null-basis identities, outer-product antisymmetry, inverses and duality, conformal distance encoding, sphere incidence, point normalization, point-pair extraction, projective constructions, special isosceles-locus boundaries, two-link and three-link kinematic constraints, the three-link representation singularity, tripod stability, and agreement between the revised CGA constructions and independent reference solutions.
 
 GitHub Actions runs the same tests on every push and pull request and also executes a reduced end-to-end smoke run of the reproducibility pipeline.
 
