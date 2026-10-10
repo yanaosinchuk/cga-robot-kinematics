@@ -2,6 +2,8 @@
 
 [![tests](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml/badge.svg)](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml)
 
+[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json)
+
 Computational geometry and inverse kinematics with **projective geometry** and **conformal geometric algebra (CGA)**.
 
 This project studies how geometric constructions can be expressed as algebraic operations on geometric objects rather than as isolated coordinate formulas. The examples range from ideal points and circle constructions in the projective plane to two-link and three-link inverse kinematics, three-sphere intersection, and tripod stability in 3D.
@@ -40,7 +42,7 @@ The checked-in numerical experiment uses seed `20260922` and validates the const
 | Two-link kinematics | 10,000 | max residual \(4.44\times10^{-16}\) |
 | Three-link kinematics | 10,000 | max residual \(4.44\times10^{-16}\) |
 | Isosceles-locus candidate count | 19,944 | 0 count mismatches |
-| Isosceles-locus residual | 19,944 | max residual \(3.38\times10^{-15}\) |
+| Isosceles-locus residual | 19,944 | max residual \(5.16\times10^{-15}\) |
 
 A particularly important result concerns the three-link construction. The original representation becomes numerically unstable near target distance \(d=1\), although the robot configuration itself is geometrically regular. A reflection-based reformulation removes this representation singularity: across the tested sequence down to \(|d-1|=10^{-14}\), the revised construction remains at approximately machine precision, with a maximum reported position error of \(6.27\times10^{-16}\).
 
@@ -187,16 +189,18 @@ cga-robot-kinematics/
 │   └── results.tex
 │
 ├── figures/
-│   ├── isosceles_locus.png
-│   ├── kinematic_constructions.png
-│   ├── projective_constructions.png
-│   ├── stability_analysis.png
-│   └── tripod_construction.png
+│   ├── isosceles_locus.{png,pdf}
+│   ├── kinematic_constructions.{png,pdf}
+│   ├── projective_constructions.{png,pdf}
+│   ├── stability_analysis.{png,pdf}
+│   └── tripod_construction.{png,pdf}
 │
 ├── paper/
+│   ├── README.md
 │   ├── logo_hda.png
 │   ├── main.tex
-│   └── references.bib
+│   ├── references.bib
+│   └── from_ideal_points_to_robot_joints.pdf
 │
 ├── .github/
 │   └── workflows/
@@ -223,7 +227,7 @@ The accompanying seminar paper is:
 
 **From Ideal Points to Robot Joints — Computational Geometry and Conformal Geometric Algebra**
 
-The LaTeX source and bibliography are stored in [`paper/`](paper/).
+The LaTeX source, bibliography, build notes, and compiled PDF are stored in [`paper/`](paper/).
 
 The report develops the projective and conformal models, derives the geometric constructions, analyses singular and degenerate cases, and documents the numerical experiments.
 
@@ -238,7 +242,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ~~~
 
-The standalone numerical core uses NumPy; figure generation uses Matplotlib.
+The standalone numerical core uses NumPy; figure generation uses Matplotlib. The pinned environment used for the checked-in numerical ledger is Python 3.11 with NumPy 2.4.6 and Matplotlib 3.11.2.
 
 The scripts in [`projective_geometry/`](projective_geometry/) additionally use the course-specific `libcfcg` teaching library, which is not bundled with this repository. The CLUCalc scripts in [`cga_kinematics/`](cga_kinematics/) are intended for a CLUCalc environment.
 
