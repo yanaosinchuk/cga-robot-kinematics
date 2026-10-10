@@ -31,13 +31,27 @@ class Degenerate(ConstructionError):
 HELPER_AXIS_TOL_SQ = 1e-12
 
 
-def _pair(P):
+def _pair(P, *, literal: bool = False):
+    """Extract a point pair.
+
+    Original-program audits use the literal homework formula. Revised
+    constructions use tolerant classification and clamp round-off at tangency.
+    """
     status = classify_pointpair(P)
     if status == "imaginary":
         raise Imaginary("imaginary point pair")
     if status == "degenerate":
         raise Degenerate("degenerate point-pair blade")
-    return pointpair_extract_homework(P)[2:]          # (N_Pp1, N_Pp2)
+    if literal:
+        return pointpair_extract_homework(P)[2:]
+
+    s = np.sqrt(max((P | P).scalar(), 0.0))
+    divisor = einf | P
+    p1 = normalise_point((s + P) / divisor)
+    if status == "tangent":
+        return p1, p1
+    p2 = normalise_point((-s + P) / divisor)
+    return p1, p2
 
 
 def _helper_direction(a: float, b: float, c: float):
@@ -63,12 +77,12 @@ def tripod_original():
     A, B, C = VecN3(-1, 0, 0), VecN3(1, 0, 0), VecN3(0, 0, 2)
     Boden = 4 * (A ^ B ^ C ^ einf)
     S = meet3(SphereN3(A, 2.69), SphereN3(B, 1.8), SphereN3(C, 1.5))
-    n1, n2 = _pair(S)
+    n1, n2 = _pair(S, literal=True)
     spitze = n1 if n1.c[2] > 0 else n2
     KS = SphereN3(n2, 1.1)                       # original: centred at N_Pp2, not Spitze
     circ = meet(Boden, KS)
     F = meet(A ^ n1 ^ n2 ^ einf, circ)
-    n3, n4 = _pair(F)
+    n3, n4 = _pair(F, literal=True)
     d1, d2 = (np.sqrt(-2 * (A | n).scalar()) for n in (n3, n4))
     aussen = n3 if d1 > d2 else n4
     return {"legs_drawn_to": euclid(n2), "spitze": euclid(spitze),
@@ -95,7 +109,7 @@ def two_link_original(a, b, c):
     Z = VecN3(0, 1, 0)
     E = 8 * (U ^ Z ^ A ^ einf)
     P = meet(meet(SphereN3(U, 1), SphereN3(A, 1)), E)
-    n1, n2 = _pair(P)
+    n1, n2 = _pair(P, literal=True)
     return euclid(n1 if n1.c[2] > n2.c[2] else n2)
 
 
@@ -118,13 +132,13 @@ def three_link_original(a, b, c, swap=False):
     K1, K2 = SphereN3(U, 1), SphereN3(A, 1)
     HE = 10 * (U ^ VecN3(0, 1, 0) ^ A ^ einf)
     GKA = meet(4 * (U ^ A ^ einf), K2)
-    n1, n2 = _pair(GKA)
+    n1, n2 = _pair(GKA, literal=True)
     if swap:
         n1, n2 = n2, n1
     GE1, GE2 = (U - n1).dual(), (U - n2).dual()
     elbows = []
     for GE, K in ((GE1, K1), (GE2, K2)):
-        p, q = _pair(meet(meet(GE, K), HE))
+        p, q = _pair(meet(meet(GE, K), HE), literal=True)
         elbows.append(euclid(p if p.c[2] > q.c[2] else q))
     return elbows[0], elbows[1], (euclid(n1), euclid(n2))
 
