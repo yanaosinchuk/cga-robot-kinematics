@@ -52,11 +52,19 @@ class MV:
     __array_priority__ = 1000
 
     def __init__(self, coeffs=None):
-        self.c = np.zeros(DIM) if coeffs is None else np.asarray(coeffs, float).copy()
+        if coeffs is None:
+            self.c = np.zeros(DIM)
+            return
+        values = np.asarray(coeffs, float)
+        if values.shape != (DIM,):
+            raise ValueError(f"expected {DIM} multivector coefficients, got shape {values.shape}")
+        self.c = values.copy()
 
     # ----------------------------------------------------------------- basics
     @staticmethod
     def blade(mask: int, value: float = 1.0) -> "MV":
+        if not 0 <= mask < DIM:
+            raise ValueError(f"blade mask must be in [0, {DIM - 1}]")
         m = MV()
         m.c[mask] = value
         return m
@@ -113,11 +121,13 @@ class MV:
         return MV(self.c * np.where((k * (k - 1) // 2) % 2 == 0, 1.0, -1.0))
 
     def inverse(self) -> "MV":
-        """Inverse for versors / blades:  A^{-1} = ~A / (A ~A)."""
+        """Inverse for non-null blades/versors: A^{-1} = ~A / (A ~A)."""
         r = self.reverse()
-        d = (self * r)
+        d = self * r
         if np.max(np.abs(d.c[1:])) > 1e-9 * max(1.0, abs(d.c[0])):
             raise ValueError("inverse() only implemented for blades/versors")
+        if d.c[0] == 0.0 or not np.isfinite(d.c[0]):
+            raise ZeroDivisionError("multivector is non-invertible")
         return r / d.c[0]
 
     def dual(self) -> "MV":
@@ -198,8 +208,11 @@ def euclid(X: MV) -> np.ndarray:
 
 
 def normalise_point(X: MV) -> MV:
-    """Correct normalisation  X / (-X . einf)."""
-    return X / (-(X | einf).scalar())
+    """Normalise a finite conformal point to weight one."""
+    weight = -(X | einf).scalar()
+    if abs(weight) < 1e-14 or not np.isfinite(weight):
+        raise ZeroDivisionError("cannot normalise point with zero/invalid conformal weight")
+    return X / weight
 
 
 def pointpair_extract_homework(P: MV):
@@ -223,23 +236,27 @@ def pointpair_extract_homework(P: MV):
 
 
 def classify_pointpair(P: MV, rel_tol: float = 1e-10) -> str:
-    """'real', 'tangent' or 'imaginary' from the sign of P.P (scale-aware)."""
+    """Classify an OPNS point pair as real, tangent, imaginary, or degenerate."""
     s2 = (P | P).scalar()
     scale = float(np.sum(P.c ** 2))
+    if scale == 0.0 or not np.isfinite(scale):
+        return "degenerate"
     if abs(s2) <= rel_tol * scale:
         return "tangent"
     return "real" if s2 > 0 else "imaginary"
 
 
 def pointpair_points(P: MV):
-    """Robust extraction: returns the two Euclidean points of a real pair."""
+    """Extract Euclidean points from a non-degenerate real/tangent point pair."""
     status = classify_pointpair(P)
-    if status == "imaginary":
+    if status in {"imaginary", "degenerate"}:
         return status, []
+
     s = np.sqrt(max((P | P).scalar(), 0.0))
     v = einf | P
+    signs = (+1.0,) if status == "tangent" else (+1.0, -1.0)
     pts = []
-    for sign in (+1.0, -1.0):
+    for sign in signs:
         X = (sign * s + P) / v
         pts.append(euclid(X))
     return status, pts
