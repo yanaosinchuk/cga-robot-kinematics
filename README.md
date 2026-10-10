@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml/badge.svg)](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml)
 
-[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json)
+[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json) · [Citation](CITATION.cff)
 
 Computational geometry and inverse kinematics with **projective geometry** and **conformal geometric algebra (CGA)**.
 
@@ -14,7 +14,7 @@ This project studies how geometric constructions can be expressed as algebraic o
 
 The project combines mathematical modelling, numerical validation, and robotics-oriented geometry:
 
-- a transparent NumPy implementation of the conformal geometric algebra \(G(4,1)\),
+- a transparent NumPy implementation of the conformal geometric algebra $G(4,1)$,
 - projective constructions using homogeneous coordinates and ideal points,
 - two-link and three-link inverse kinematics,
 - sphere, plane, circle, and point-pair intersections in CGA,
@@ -38,17 +38,17 @@ The checked-in numerical experiment uses seed `20260922` and validates the const
 
 | Experiment | Samples | Result |
 | --- | ---: | ---: |
-| Projective constructions | 5,000 | max residual \(3.42\times10^{-14}\) |
-| Two-link kinematics | 10,000 | max residual \(4.44\times10^{-16}\) |
-| Three-link kinematics | 10,000 | max residual \(4.44\times10^{-16}\) |
+| Projective constructions | 5,000 | max residual $3.42\times10^{-14}$ |
+| Two-link kinematics | 10,000 | max residual $4.44\times10^{-16}$ |
+| Three-link kinematics | 10,000 | max residual $4.44\times10^{-16}$ |
 | Isosceles-locus candidate count | 19,944 | 0 count mismatches |
-| Isosceles-locus residual | 19,944 | max residual \(5.16\times10^{-15}\) |
+| Isosceles-locus residual | 19,944 | max residual $5.16\times10^{-15}$ |
 
-A particularly important result concerns the three-link construction. The original representation becomes numerically unstable near target distance \(d=1\), although the robot configuration itself is geometrically regular. A reflection-based reformulation removes this representation singularity: across the tested sequence down to \(|d-1|=10^{-14}\), the revised construction remains at approximately machine precision, with a maximum reported position error of \(6.27\times10^{-16}\).
+A particularly important result concerns the three-link construction. The original representation becomes numerically unstable near target distance $d=1$, although the robot configuration itself is geometrically regular. A reflection-based reformulation removes this representation singularity: across the tested sequence down to $|d-1|=10^{-14}$, the revised construction remains at approximately machine precision, with a maximum reported position error of $6.27\times10^{-16}$.
 
 ![Conditioning and singularity analysis](figures/stability_analysis.png)
 
-The tripod experiment also illustrates the difference between satisfying distance constraints and obtaining a physically useful configuration. The three-leg support has a negative stability margin of approximately \(-0.669\). Selecting the outer candidate for the fourth support changes the margin to approximately \(+0.304\).
+The tripod experiment also illustrates the difference between satisfying distance constraints and obtaining a physically useful configuration. The three-leg support has a negative stability margin of approximately $-0.669$. Selecting the outer candidate for the fourth support changes the margin to approximately $+0.304$.
 
 ![Three-sphere meet and tripod support geometry](figures/tripod_construction.png)
 
@@ -58,7 +58,7 @@ The complete numerical ledger is stored in [`results/results.json`](results/resu
 
 ### Projective Geometry
 
-The planar constructions use homogeneous coordinates in \(\mathbb{P}^2\), where joins and meets are represented by cross products and parallel lines intersect at ideal points.
+The planar constructions use homogeneous coordinates in $\mathbb{P}^2$, where joins and meets are represented by cross products and parallel lines intersect at ideal points.
 
 The repository contains three explicit constructions:
 
@@ -88,7 +88,7 @@ src/cga_constructions.py
 
 The three-link construction is formulated geometrically as an isosceles-trapezoid problem. The revised formulation selects an auxiliary point explicitly, constructs one elbow from a circle-plane meet, and obtains the other through reflection in the bisector plane of shoulder and target.
 
-This reformulation removes a representation singularity present in the original construction near \(d=1\).
+This reformulation removes a representation singularity present in the original construction near $d=1$.
 
 Relevant files:
 
@@ -120,9 +120,9 @@ src/cga_constructions.py
 
 ## Conformal Geometric Algebra Engine
 
-[`src/cga.py`](src/cga.py) contains a small NumPy implementation of \(G(4,1)\), the conformal geometric algebra used by the CLUCalc N3 model.
+[`src/cga.py`](src/cga.py) contains a small NumPy implementation of $G(4,1)$, the conformal geometric algebra used by the CLUCalc N3 model.
 
-It represents a multivector using the \(2^5=32\) basis blades and implements the operations needed by the constructions in this project, including:
+It represents a multivector using the $2^5=32$ basis blades and implements the operations needed by the constructions in this project, including:
 
 - geometric product,
 - outer product,
@@ -208,6 +208,7 @@ cga-robot-kinematics/
 │
 ├── .gitattributes
 ├── .gitignore
+├── CITATION.cff
 ├── README.md
 ├── requirements.txt
 └── requirements-dev.txt
