@@ -1091,9 +1091,9 @@ not more precision.
 
 The experiments use Python, NumPy double precision, Matplotlib, and the fixed
 random seed \ExperimentSeed. The current automated workflow is tested with
-Python~3.11. The script \texttt{src/generate\_figures.py} creates every
-reported number, all table entries, and all plots from a clean checkout; no
-reported numerical value is transcribed by hand. The implementation is divided
+Python~3.11. The script \texttt{src/generate\_figures.py} regenerates every reported
+experimental number, the LaTeX result macros, and all numerical plots from a
+clean checkout; no reported experimental value is transcribed by hand. The implementation is divided
 into the following components:
 \begin{itemize}
   \item \texttt{src/cga.py}: a self-contained implementation of $\GA$ with
