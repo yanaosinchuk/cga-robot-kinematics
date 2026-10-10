@@ -126,11 +126,12 @@ class MV:
         """Inverse for non-null blades/versors: A^{-1} = ~A / (A ~A)."""
         r = self.reverse()
         d = self * r
-        if np.max(np.abs(d.c[1:])) > 1e-9 * max(1.0, abs(d.c[0])):
-            raise ValueError("inverse() only implemented for blades/versors")
-        if d.c[0] == 0.0 or not np.isfinite(d.c[0]):
+        scalar = d.c[0]
+        if scalar == 0.0 or not np.isfinite(scalar):
             raise ZeroDivisionError("multivector is non-invertible")
-        return r / d.c[0]
+        if np.max(np.abs(d.c[1:])) > 1e-9 * abs(scalar):
+            raise ValueError("inverse() only implemented for blades/versors")
+        return r / scalar
 
     def dual(self) -> "MV":
         """CLUCalc '*A' = A I^{-1}, with I = e1 e2 e3 e+ e-."""
@@ -204,7 +205,7 @@ def meet3(A: MV, B: MV, C: MV) -> MV:
 def euclid(X: MV) -> np.ndarray:
     """Euclidean coordinates of a (not necessarily normalised) conformal point."""
     w = -(X | einf).scalar()
-    if abs(w) < 1e-14 or not np.isfinite(w):
+    if w == 0.0 or not np.isfinite(w):
         raise ZeroDivisionError("point at infinity / flat object")
     return np.array([X.c[1], X.c[2], X.c[4]]) / w
 
@@ -212,7 +213,7 @@ def euclid(X: MV) -> np.ndarray:
 def normalise_point(X: MV) -> MV:
     """Normalise a finite conformal point to weight one."""
     weight = -(X | einf).scalar()
-    if abs(weight) < 1e-14 or not np.isfinite(weight):
+    if weight == 0.0 or not np.isfinite(weight):
         raise ZeroDivisionError("cannot normalise point with zero/invalid conformal weight")
     return X / weight
 
