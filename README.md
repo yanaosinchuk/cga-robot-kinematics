@@ -8,6 +8,21 @@ Computational geometry for robotics with **conformal geometric algebra (CGA)**, 
 
 The project turns inverse-kinematics and geometric-construction problems into intersections of geometric primitives, keeps all solution branches explicit, and separates geometric construction from application-specific branch selection.
 
+## Engineering Highlights
+
+- **Custom CGA engine:** implemented the conformal algebra $G(4,1)$ in NumPy with 32-component multivectors, geometric/outer/inner products, duality, conformal primitives, meets, and point-pair extraction.
+- **Robust inverse kinematics:** audited two-link and three-link constructions, made branch policies explicit, handled unreachable/tangent/degenerate cases, and added a deterministic vertical-axis fallback.
+- **Singularity diagnosis and reformulation:** identified a representation singularity in the original three-link construction near $d=1$ and replaced the degenerate intermediate construction with a reflection-based formulation that stays below $5.43\times10^{-16}$ position error in the tested sequence.
+- **Independent validation:** checked the CGA constructions against separate Euclidean/projective reference implementations across tens of thousands of configurations.
+- **Software quality:** 47 automated tests, GitHub Actions CI, numerical invariant checks, reproducible figures/results, and a compiled technical report.
+
+### Start Here
+
+- [`src/cga_constructions.py`](src/cga_constructions.py) — revised robotics constructions and audited original formulations
+- [`src/cga.py`](src/cga.py) — conformal geometric algebra engine
+- [`tests/`](tests/) — algebraic, geometric, kinematic, and edge-case regression tests
+- [`paper/from_ideal_points_to_robot_joints.pdf`](paper/from_ideal_points_to_robot_joints.pdf) — derivations, numerical study, and limitations
+
 ## Robotics Problem
 
 Inverse kinematics is often implemented as a collection of coordinate formulas. That works, but it can hide three things that matter in robotics: **multiple valid branches**, **singular configurations**, and **the geometric meaning of failure**.
