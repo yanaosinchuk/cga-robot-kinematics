@@ -88,3 +88,43 @@ def test_pointpair_extraction_recovers_two_sphere_intersections():
         assert abs(np.linalg.norm(point - np.array([1.0, 0.0, 0.0])) - 1.0) < 1e-12
         assert abs(point[0] - 0.5) < 1e-12
         assert abs(point[1]) < 1e-12
+
+def test_multivector_rejects_wrong_coefficient_shape():
+    with np.testing.assert_raises(ValueError):
+        cga.MV(np.zeros(31))
+
+
+def test_null_multivector_is_not_invertible():
+    with np.testing.assert_raises(ZeroDivisionError):
+        cga.MV().inverse()
+
+
+def test_normalise_point_rejects_zero_weight():
+    plane_like = cga.e1 + cga.e2
+    with np.testing.assert_raises(ZeroDivisionError):
+        cga.normalise_point(plane_like)
+
+
+def test_zero_pointpair_is_classified_as_degenerate():
+    zero_pair = cga.MV()
+    assert cga.classify_pointpair(zero_pair) == "degenerate"
+    status, points = cga.pointpair_points(zero_pair)
+    assert status == "degenerate"
+    assert points == []
+
+
+def test_tangent_pointpair_extracts_one_unique_point():
+    origin = cga.VecN3(0.0, 0.0, 0.0)
+    target = cga.VecN3(2.0, 0.0, 0.0)
+    helper_plane = origin ^ cga.VecN3(0.0, 0.0, 1.0) ^ target ^ cga.einf
+    pair = cga.meet(
+        cga.meet(cga.SphereN3(origin, 1.0), cga.SphereN3(target, 1.0)),
+        helper_plane,
+    )
+
+    status, points = cga.pointpair_points(pair)
+
+    assert status == "tangent"
+    assert len(points) == 1
+    np.testing.assert_allclose(points[0], [1.0, 0.0, 0.0], atol=1e-12)
+
