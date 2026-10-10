@@ -365,3 +365,24 @@ def test_projective_classification_is_scale_invariant():
         assert iso.status == "regular"
         assert len(iso.candidates) == 5
 
+def test_two_link_general_reachability_interval():
+    folded = G.two_link(np.zeros(2), np.array([1.0, 0.0]), l1=2.0, l2=1.0)
+    regular = G.two_link(np.zeros(2), np.array([2.0, 0.0]), l1=2.0, l2=1.0)
+    extended = G.two_link(np.zeros(2), np.array([3.0, 0.0]), l1=2.0, l2=1.0)
+    too_close = G.two_link(np.zeros(2), np.array([0.5, 0.0]), l1=2.0, l2=1.0)
+    too_far = G.two_link(np.zeros(2), np.array([3.5, 0.0]), l1=2.0, l2=1.0)
+
+    assert folded.status == "tangent"
+    assert regular.status == "regular"
+    assert extended.status == "tangent"
+    assert too_close.status == "empty"
+    assert too_far.status == "empty"
+
+
+def test_kinematic_reference_rejects_mismatched_dimensions():
+    with np.testing.assert_raises(ValueError):
+        G.two_link(np.zeros(2), np.zeros(3))
+
+    with np.testing.assert_raises(ValueError):
+        G.three_link_trapezoid(np.zeros(2), np.zeros(3))
+
