@@ -1,5 +1,7 @@
 # CGA Robot Kinematics — From Ideal Points to Robot Joints
 
+[![tests](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml/badge.svg)](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml)
+
 Computational geometry and inverse kinematics with **projective geometry** and **conformal geometric algebra (CGA)**.
 
 This project studies how geometric constructions can be expressed as algebraic operations on geometric objects rather than as isolated coordinate formulas. The examples range from ideal points and circle constructions in the projective plane to two-link and three-link inverse kinematics, three-sphere intersection, and tripod stability in 3D.
@@ -177,6 +179,7 @@ cga-robot-kinematics/
 │   └── perpendicular_foot_via_ideal_point.py
 │
 ├── tests/
+│   ├── conftest.py
 │   └── test_geometric_constructions.py
 │
 ├── results/
@@ -195,8 +198,15 @@ cga-robot-kinematics/
 │   ├── main.tex
 │   └── references.bib
 │
+├── .github/
+│   └── workflows/
+│       └── tests.yml
+│
+├── .gitattributes
+├── .gitignore
 ├── README.md
 ├── requirements.txt
+├── requirements-dev.txt
 └── LICENSE
 ~~~
 
@@ -218,13 +228,81 @@ The LaTeX source and bibliography are stored in [`paper/`](paper/).
 
 The report develops the projective and conformal models, derives the geometric constructions, analyses singular and degenerate cases, and documents the numerical experiments.
 
-## Dependencies
+## Installation
 
-The standalone numerical core is written in Python and uses NumPy. Figure generation additionally uses Matplotlib.
+Clone the repository and install the Python dependencies:
 
-The scripts in [`projective_geometry/`](projective_geometry/) use the course-specific `libcfcg` library, which is not bundled with this repository.
+~~~bash
+git clone https://github.com/yanaosinchuk/cga-robot-kinematics.git
+cd cga-robot-kinematics
+python -m venv .venv
+pip install -r requirements.txt
+~~~
 
-The CLUCalc scripts in [`cga_kinematics/`](cga_kinematics/) are intended for a CLUCalc environment.
+The standalone numerical core uses NumPy; figure generation uses Matplotlib.
+
+The scripts in [`projective_geometry/`](projective_geometry/) additionally use the course-specific `libcfcg` teaching library, which is not bundled with this repository. The CLUCalc scripts in [`cga_kinematics/`](cga_kinematics/) are intended for a CLUCalc environment.
+
+## Testing
+
+Install the development dependencies:
+
+~~~bash
+pip install -r requirements-dev.txt
+~~~
+
+Run the test suite from the repository root:
+
+~~~bash
+python -m pytest -q
+~~~
+
+The tests cover conformal point embedding, projective constructions, candidate counts, two-link and three-link kinematic constraints, tripod stability, and agreement between the revised CGA constructions and independent reference solutions.
+
+GitHub Actions runs the same tests on every push and pull request and also executes a reduced end-to-end smoke run of the reproducibility pipeline.
+
+## Reproducing the Numerical Study
+
+Run the full numerical experiment from the repository root:
+
+~~~bash
+python src/generate_figures.py
+~~~
+
+This regenerates:
+
+~~~text
+figures/*.pdf
+figures/*.png
+results/results.json
+results/results.tex
+~~~
+
+The full experiment uses the fixed seed `20260922`.
+
+For a faster smoke run:
+
+~~~bash
+FAST=1 python src/generate_figures.py
+~~~
+
+To redirect generated files to another directory:
+
+~~~bash
+OUT_DIR=/tmp/cga-output FAST=1 python src/generate_figures.py
+~~~
+
+## Building the Technical Report
+
+First regenerate the numerical results and PDF figures, then compile from the `paper/` directory:
+
+~~~bash
+python src/generate_figures.py
+cd paper
+latexmk -pdf main.tex
+~~~
+
+The report reads its numerical macros from `../results/results.tex` and its generated figures from `../figures/`.
 
 ## Academic Context
 
