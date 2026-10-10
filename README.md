@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml/badge.svg)](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml)
 
-[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json) · [Citation](CITATION.cff)
+[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json)
 
 Computational geometry and inverse kinematics with **projective geometry** and **conformal geometric algebra (CGA)**.
 
@@ -208,7 +208,6 @@ cga-robot-kinematics/
 │
 ├── .gitattributes
 ├── .gitignore
-├── CITATION.cff
 ├── README.md
 ├── requirements.txt
 └── requirements-dev.txt
