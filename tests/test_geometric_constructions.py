@@ -180,20 +180,15 @@ def test_isosceles_count_matches_construction_near_special_heights():
             assert len(result.candidates) == expected
 
 
-def test_original_three_link_has_representation_singularity_at_d_equal_one():
+def test_original_three_link_contains_degenerate_auxiliary_point_at_d_equal_one():
     direction = np.array([0.6, 0.3, -0.2])
     direction /= np.linalg.norm(direction)
     target = direction
 
-    failed = False
-    try:
-        with np.errstate(all="ignore"):
-            e1, e2, _ = constructions.three_link_original(*target)
-        failed = not (np.all(np.isfinite(e1)) and np.all(np.isfinite(e2)))
-    except Exception:
-        failed = True
+    with np.errstate(all="ignore"):
+        _, _, auxiliary_points = constructions.three_link_original(*target)
 
-    assert failed
+    assert min(np.linalg.norm(point) for point in auxiliary_points) < 1e-12
 
     reference = G.three_link_trapezoid(np.zeros(3), target).selected
     e1, e2 = constructions.three_link_revised(*target)
