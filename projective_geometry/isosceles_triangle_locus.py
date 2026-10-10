@@ -59,7 +59,7 @@ def isosceles_apices(p0, p1, p2):
     cands.sort(key=lambda c: c[1])
     merged = []
     for label, t in cands:                                # merge coincident apices
-        if merged and abs(t - merged[-1][1]) <= 1e-9 * d:
+        if merged and abs(t - merged[-1][1]) <= REL_TOL * d:
             merged[-1] = (merged[-1][0] + " = " + label, merged[-1][1])
         else:
             merged.append((label, t))
