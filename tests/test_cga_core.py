@@ -1,0 +1,89 @@
+import numpy as np
+
+import cga
+
+
+def test_basis_signature_matches_g41_metric():
+    assert (cga.e1 * cga.e1).scalar() == 1.0
+    assert (cga.e2 * cga.e2).scalar() == 1.0
+    assert (cga.e3 * cga.e3).scalar() == 1.0
+    assert (cga.ep * cga.ep).scalar() == 1.0
+    assert (cga.em * cga.em).scalar() == -1.0
+
+
+def test_null_basis_relations():
+    assert abs((cga.einf * cga.einf).scalar()) < 1e-14
+    assert abs((cga.e0 * cga.e0).scalar()) < 1e-14
+    assert abs((cga.e0 | cga.einf).scalar() + 1.0) < 1e-14
+
+
+def test_outer_product_is_antisymmetric_for_vectors():
+    lhs = cga.e1 ^ cga.e2
+    rhs = cga.e2 ^ cga.e1
+    np.testing.assert_allclose(lhs.c, -rhs.c, atol=0.0, rtol=0.0)
+
+
+def test_basis_vector_inverse():
+    np.testing.assert_allclose((cga.e1 * cga.e1.inverse()).c, cga.MV.blade(0).c)
+    np.testing.assert_allclose((cga.em * cga.em.inverse()).c, cga.MV.blade(0).c)
+
+
+def test_dual_twice_returns_negative_multivector_in_g41():
+    A = 2.0 * cga.e1 + 3.0 * (cga.e2 ^ cga.e3)
+    np.testing.assert_allclose(A.dual().dual().c, -A.c, atol=1e-14, rtol=0.0)
+
+
+def test_conformal_inner_product_encodes_squared_distance():
+    x = np.array([1.2, -0.5, 2.0])
+    y = np.array([-0.7, 1.5, 0.25])
+    X = cga.VecN3(*x)
+    Y = cga.VecN3(*y)
+
+    cga_distance_squared = -2.0 * (X | Y).scalar()
+    euclidean_distance_squared = float(np.sum((x - y) ** 2))
+
+    assert abs(cga_distance_squared - euclidean_distance_squared) < 1e-12
+
+
+def test_ipns_sphere_incidence():
+    center = cga.VecN3(1.0, -2.0, 0.5)
+    radius = 1.7
+    sphere = cga.SphereN3_ipns(center, radius)
+
+    point_on_sphere = cga.VecN3(1.0 + radius, -2.0, 0.5)
+    point_inside = cga.VecN3(1.0, -2.0, 0.5)
+
+    assert abs((point_on_sphere | sphere).scalar()) < 1e-12
+    assert (point_inside | sphere).scalar() > 0.0
+
+
+def test_normalise_point_is_scale_invariant():
+    X = cga.VecN3(-1.0, 2.0, 3.0)
+    scaled = 7.25 * X
+
+    np.testing.assert_allclose(
+        cga.normalise_point(scaled).c,
+        cga.normalise_point(X).c,
+        atol=1e-12,
+        rtol=0.0,
+    )
+
+
+def test_pointpair_extraction_recovers_two_sphere_intersections():
+    origin = cga.VecN3(0.0, 0.0, 0.0)
+    target = cga.VecN3(1.0, 0.0, 0.0)
+
+    sphere_a = cga.SphereN3(origin, 1.0)
+    sphere_b = cga.SphereN3(target, 1.0)
+    helper_plane = origin ^ cga.VecN3(0.0, 0.0, 1.0) ^ target ^ cga.einf
+
+    pair = cga.meet(cga.meet(sphere_a, sphere_b), helper_plane)
+    status, points = cga.pointpair_points(pair)
+
+    assert status == "real"
+    assert len(points) == 2
+
+    for point in points:
+        assert abs(np.linalg.norm(point) - 1.0) < 1e-12
+        assert abs(np.linalg.norm(point - np.array([1.0, 0.0, 0.0])) - 1.0) < 1e-12
+        assert abs(point[2]) < 1e-12
