@@ -90,17 +90,30 @@ def tripod_original():
 
 
 def tripod_revised():
-    A, B, C = VecN3(-1, 0, 0), VecN3(1, 0, 0), VecN3(0, 0, 2)
-    Boden = A ^ B ^ C ^ einf
-    S = meet3(SphereN3(A, 2.69), SphereN3(B, 1.8), SphereN3(C, 1.5))
-    n1, n2 = _pair(S)
-    spitze, other = (n1, n2) if euclid(n1)[1] > euclid(n2)[1] else (n2, n1)
-    circ = meet(Boden, SphereN3(spitze, 1.1))
-    F = meet(A ^ spitze ^ other ^ einf, circ)
-    n3, n4 = _pair(F)
-    d3, d4 = (np.sqrt(-2 * (A | n).scalar()) for n in (n3, n4))
-    aussen = n3 if d3 > d4 else n4
-    return {"spitze": euclid(spitze), "aussen": euclid(aussen)}
+    """Revised tripod construction with explicit apex and outer-foot policies."""
+    foot_a = VecN3(-1, 0, 0)
+    foot_b = VecN3(1, 0, 0)
+    foot_c = VecN3(0, 0, 2)
+    ground_plane = foot_a ^ foot_b ^ foot_c ^ einf
+
+    apex_pair = meet3(
+        SphereN3(foot_a, 2.69),
+        SphereN3(foot_b, 1.8),
+        SphereN3(foot_c, 1.5),
+    )
+    p1, p2 = _pair(apex_pair)
+    apex, mirrored_apex = (
+        (p1, p2) if euclid(p1)[1] > euclid(p2)[1] else (p2, p1)
+    )
+
+    fourth_circle = meet(ground_plane, SphereN3(apex, 1.1))
+    helper_plane = foot_a ^ apex ^ mirrored_apex ^ einf
+    foot_pair = meet(helper_plane, fourth_circle)
+    q1, q2 = _pair(foot_pair)
+    d1, d2 = (np.sqrt(-2 * (foot_a | q).scalar()) for q in (q1, q2))
+    outer_foot = q1 if d1 > d2 else q2
+
+    return {"apex": euclid(apex), "outer_foot": euclid(outer_foot)}
 
 
 # ------------------------------------------------------------------ task 2
@@ -114,12 +127,16 @@ def two_link_original(a, b, c):
 
 
 def two_link_revised(a, b, c):
-    A = VecN3(a, b, c)
-    helper, branch_axis = _helper_direction(a, b, c)
-    E = U ^ helper ^ A ^ einf
-    P = meet(meet(SphereN3(U, 1), SphereN3(A, 1)), E)
-    n1, n2 = _pair(P)
-    return euclid(_select_branch(n1, n2, branch_axis))
+    """Revised two-link IK with reachability classification and axis fallback."""
+    target = VecN3(a, b, c)
+    helper_point, branch_axis = _helper_direction(a, b, c)
+    helper_plane = U ^ helper_point ^ target ^ einf
+    elbow_pair = meet(
+        meet(SphereN3(U, 1), SphereN3(target, 1)),
+        helper_plane,
+    )
+    p1, p2 = _pair(elbow_pair)
+    return euclid(_select_branch(p1, p2, branch_axis))
 
 
 # ------------------------------------------------------------------ task 3
@@ -148,17 +165,23 @@ def three_link_revised(a, b, c):
 
     W+ is chosen as the auxiliary point farther from the shoulder, E2 is obtained
     from one circle-plane meet, and E1 is reflected in the shoulder-target
-    bisector plane.  A deterministic +x branch is used when the target lies on
+    bisector plane. A deterministic +x branch is used when the target lies on
     the vertical axis, where "upper" alone cannot distinguish the two branches.
     """
-    A = VecN3(a, b, c)
-    K2 = SphereN3(A, 1)
-    helper, branch_axis = _helper_direction(a, b, c)
-    HE = U ^ helper ^ A ^ einf
-    n1, n2 = _pair(meet(U ^ A ^ einf, K2))
-    Wp = n1 if -(U | n1).scalar() > -(U | n2).scalar() else n2
-    p, q = _pair(meet(meet((U - Wp).dual(), K2), HE))
-    E2 = _select_branch(p, q, branch_axis)
-    m = U - A                                           # IPNS bisector plane of U and A
-    E1 = -(m * E2 * m.inverse())
-    return euclid(E1), euclid(E2)
+    target = VecN3(a, b, c)
+    target_sphere = SphereN3(target, 1)
+    helper_point, branch_axis = _helper_direction(a, b, c)
+    helper_plane = U ^ helper_point ^ target ^ einf
+
+    auxiliary_pair = meet(U ^ target ^ einf, target_sphere)
+    w1, w2 = _pair(auxiliary_pair)
+    w_plus = w1 if -(U | w1).scalar() > -(U | w2).scalar() else w2
+
+    e2_circle = meet((U - w_plus).dual(), target_sphere)
+    e2_pair = meet(e2_circle, helper_plane)
+    e2_a, e2_b = _pair(e2_pair)
+    elbow2 = _select_branch(e2_a, e2_b, branch_axis)
+
+    bisector_plane = U - target
+    elbow1 = -(bisector_plane * elbow2 * bisector_plane.inverse())
+    return euclid(elbow1), euclid(elbow2)
