@@ -219,32 +219,54 @@ def select_max(cands, key: Callable) -> np.ndarray:
     return max(cands, key=key)
 
 
-def sphere_plane_circle(centre, radius, plane_point, plane_normal):
-    """Circle = sphere  cap  plane:  returns (centre, radius, normal) or None."""
+def sphere_plane_circle(centre, radius, plane_point, plane_normal, tau: float = 1e-12):
+    """Circle = sphere cap plane; return (centre, radius, normal) or None."""
+    if radius < 0:
+        raise ValueError("sphere radius must be non-negative")
     n = np.asarray(plane_normal, float)
-    n = n / np.linalg.norm(n)
-    dist = (np.asarray(centre) - plane_point) @ n
-    if abs(dist) > radius:
+    nn = np.linalg.norm(n)
+    if nn == 0.0:
+        raise ValueError("plane normal must be non-zero")
+    n = n / nn
+    dist = (np.asarray(centre, float) - np.asarray(plane_point, float)) @ n
+    tol = tau * max(1.0, radius)
+    if abs(dist) > radius + tol:
         return None
-    return np.asarray(centre) - dist * n, np.sqrt(radius ** 2 - dist ** 2), n
+    r2 = radius ** 2 - dist ** 2
+    return np.asarray(centre, float) - dist * n, np.sqrt(max(r2, 0.0)), n
 
 
-def circle_plane_points(circ, plane_point, plane_normal):
-    """Circle cap plane (the two feet), assuming the planes are not parallel."""
+def circle_plane_points(circ, plane_point, plane_normal, tau: float = 1e-12):
+    """Intersect a circle with a non-parallel plane."""
+    if circ is None:
+        return []
     cc, rr, nc = circ
     m = np.asarray(plane_normal, float)
-    m = m / np.linalg.norm(m)
-    # direction of the line where the two planes meet
+    mm = np.linalg.norm(m)
+    if mm == 0.0:
+        return []
+    m = m / mm
+
     t = np.cross(nc, m)
-    t = t / np.linalg.norm(t)
-    # point on that line closest to cc, inside circle plane
-    v = np.cross(nc, t)                     # in circle plane, perpendicular to t
-    s = ((plane_point - cc) @ m) / (v @ m)
+    tt = np.linalg.norm(t)
+    if tt <= tau:
+        return []
+    t = t / tt
+
+    v = np.cross(nc, t)
+    denom = v @ m
+    if abs(denom) <= tau:
+        return []
+    s = ((np.asarray(plane_point, float) - cc) @ m) / denom
     base = cc + s * v
     q = rr ** 2 - s ** 2
-    if q < 0:
+    tol = tau * max(1.0, rr ** 2)
+    if q < -tol:
         return []
-    return [base + np.sqrt(q) * t, base - np.sqrt(q) * t]
+    root = np.sqrt(max(q, 0.0))
+    if root == 0.0:
+        return [base]
+    return [base + root * t, base - root * t]
 
 
 def convex_hull_2d(P):
@@ -268,9 +290,10 @@ def convex_hull_2d(P):
 
 
 def stability_margin(support_xz, com_xz) -> float:
-    """Signed distance of the projected centre of mass to the support-polygon boundary
-    (positive = inside = statically stable)."""
+    """Signed distance from projected load point to a non-degenerate support polygon."""
     H = convex_hull_2d(support_xz)
+    if len(H) < 3:
+        raise ValueError("support polygon requires at least three non-collinear points")
     q = np.asarray(com_xz, float)
     dmin = np.inf
     inside = True
@@ -299,11 +322,22 @@ def tripod(A, B, C, rA, rB, rC, r4, up=np.array([0.0, 1.0, 0.0])):
         return tri
     S_plus = select_max(tri.candidates, key=lambda x: x @ up)          # height policy
     circ = sphere_plane_circle(S_plus, r4, np.asarray(A, float), up)
-    # helper plane tau: vertical plane through A and the apex (contains S+ and S-)
-    S_minus = [x for x in tri.candidates if x is not S_plus][0]
+    if circ is None:
+        return ConstructionResult("empty", tri.candidates, S_plus,
+                                  info={"reason": "fourth-leg sphere misses ground plane"})
+
+    # helper plane tau: vertical plane through A and the two apex branches
+    S_minus = min(tri.candidates, key=lambda x: x @ up)
     tau_n = np.cross(S_plus - np.asarray(A, float), S_minus - np.asarray(A, float))
+    if np.linalg.norm(tau_n) <= 1e-12:
+        return ConstructionResult("degenerate", tri.candidates, S_plus,
+                                  info={"reason": "helper plane undefined at tangent apex"})
+
     feet = circle_plane_points(circ, np.asarray(A, float), tau_n)
-    Q_out = select_max(feet, key=lambda q: np.linalg.norm(q - A))      # 'outer' policy
+    if not feet:
+        return ConstructionResult("empty", tri.candidates, S_plus,
+                                  info={"reason": "no real fourth-support foot"})
+    Q_out = select_max(feet, key=lambda q: np.linalg.norm(q - np.asarray(A, float)))
     legs = [(A, rA), (B, rB), (C, rC), (Q_out, r4)]
     res = max(abs(np.linalg.norm(S_plus - np.asarray(p)) - r) for p, r in legs)
     res = max(res, abs((Q_out - A) @ up))
@@ -315,18 +349,32 @@ def tripod(A, B, C, rA, rB, rC, r4, up=np.array([0.0, 1.0, 0.0])):
 # --------------------------------------------------------------------------
 # Kinematic chains (in the plane of the helper chart)
 # --------------------------------------------------------------------------
-def _in_plane_perp(u, up, tau: float = 1e-12):
-    """Unit vector perpendicular to u inside the plane spanned by u and `up`,
-    oriented towards `up`.  Built from exact rotations / cross products so that
-    orthogonality holds to machine precision."""
-    if u.size == 2:
-        p = np.array([-u[1], u[0]])
-        return p if p @ up >= 0 else -p
-    n = np.cross(u, up)
-    nn = np.linalg.norm(n)
-    if nn <= tau * np.linalg.norm(up):
-        return None
-    return np.cross(n / nn, u)
+def _in_plane_perp(u, up, projection_tol_sq: float = 1e-12):
+    """Preferred transverse direction for a motion plane.
+
+    The preferred `up` direction is projected orthogonally to the target
+    direction.  If that projection is too small (target parallel to `up`), a
+    deterministic coordinate axis is used instead.  This mirrors the fallback
+    helper plane used by the revised CGA construction.
+    """
+    u = np.asarray(u, float)
+    up = np.asarray(up, float)
+    if u.ndim != 1 or up.shape != u.shape:
+        raise ValueError("u and up must be vectors of the same dimension")
+    up_norm = np.linalg.norm(up)
+    if up_norm == 0.0:
+        raise ValueError("up direction must be non-zero")
+    up_hat = up / up_norm
+
+    p = up_hat - (up_hat @ u) * u
+    if p @ p <= projection_tol_sq:
+        axis = np.eye(u.size)[int(np.argmin(np.abs(u)))]
+        p = axis - (axis @ u) * u
+
+    pn = np.linalg.norm(p)
+    if pn == 0.0:
+        raise ValueError("could not construct a transverse direction")
+    return p / pn
 
 def two_link(O, T, l1=1.0, l2=1.0, up=None, tau: float = 1e-12) -> ConstructionResult:
     """Elbow of a planar/spatial two-link arm in the motion plane spanned by T-O and `up`."""
@@ -339,22 +387,22 @@ def two_link(O, T, l1=1.0, l2=1.0, up=None, tau: float = 1e-12) -> ConstructionR
     if d <= tau:
         return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
     u = v / d
+    if l1 <= 0 or l2 <= 0:
+        return ConstructionResult("degenerate", info={"reason": "link lengths must be positive"})
     u_perp = _in_plane_perp(u, up)
-    if u_perp is None:
-        return ConstructionResult("degenerate", info={"reason": "helper plane undefined"})
     a = (l1 ** 2 - l2 ** 2 + d ** 2) / (2 * d)
     q = l1 ** 2 - a ** 2
     if q < -tau * l1 ** 2:
         return ConstructionResult("empty", info={"d": d})
     h = np.sqrt(max(q, 0.0))
     E = [O + a * u + h * u_perp, O + a * u - h * u_perp]
-    sel = select_max(E, key=lambda e: e @ up)
+    sel = E[0]
     res = max(abs(np.linalg.norm(sel - O) - l1), abs(np.linalg.norm(T - sel) - l2))
     return ConstructionResult("tangent" if q <= tau * l1 ** 2 else "regular", E, sel, res,
                               {"d": d, "h": h})
 
 
-def three_link_trapezoid(O, T, l=1.0, up=None) -> ConstructionResult:
+def three_link_trapezoid(O, T, l=1.0, up=None, tau: float = 1e-12) -> ConstructionResult:
     """Three equal links as an isosceles trapezoid O-E1-E2-T with E1E2 || OT.
 
     This is the closed form of what the CLUCalc task 3 actually constructs:
@@ -366,21 +414,21 @@ def three_link_trapezoid(O, T, l=1.0, up=None) -> ConstructionResult:
         up = np.eye(dim)[1]
     v = T - O
     d = np.linalg.norm(v)
-    if d == 0:
+    if d <= tau:
         return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
+    if l <= 0:
+        return ConstructionResult("degenerate", info={"reason": "link length must be positive"})
     u = v / d
     u_perp = _in_plane_perp(u, up)
-    if u_perp is None:
-        return ConstructionResult("degenerate", info={"reason": "helper plane undefined"})
     a = 0.5 * (d - l)
     q = l * l - a * a
-    if q < 0:
+    if q < -tau * l * l:
         return ConstructionResult("empty", info={"d": d})
-    h = np.sqrt(q)
+    h = np.sqrt(max(q, 0.0))
     E1 = O + a * u + h * u_perp
     E2 = E1 + l * u
     res = max(abs(np.linalg.norm(E1 - O) - l), abs(np.linalg.norm(E2 - E1) - l),
               abs(np.linalg.norm(T - E2) - l))
-    return ConstructionResult("tangent" if q == 0 else "regular",
+    return ConstructionResult("tangent" if q <= tau * l * l else "regular",
                               [(E1, E2), (O + a * u - h * u_perp, O + a * u - h * u_perp + l * u)],
                               (E1, E2), res, {"d": d, "h": h})
