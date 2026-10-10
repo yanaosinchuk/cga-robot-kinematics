@@ -97,7 +97,7 @@ def tripod_revised():
     spitze, other = (n1, n2) if euclid(n1)[1] > euclid(n2)[1] else (n2, n1)
     circ = meet(Boden, SphereN3(spitze, 1.1))
     F = meet(A ^ spitze ^ other ^ einf, circ)
-    n3, n4 = (normalise_point(n) for n in _pair(F))
+    n3, n4 = _pair(F)
     d3, d4 = (np.sqrt(-2 * (A | n).scalar()) for n in (n3, n4))
     aussen = n3 if d3 > d4 else n4
     return {"spitze": euclid(spitze), "aussen": euclid(aussen)}
@@ -118,7 +118,7 @@ def two_link_revised(a, b, c):
     helper, branch_axis = _helper_direction(a, b, c)
     E = U ^ helper ^ A ^ einf
     P = meet(meet(SphereN3(U, 1), SphereN3(A, 1)), E)
-    n1, n2 = (normalise_point(n) for n in _pair(P))
+    n1, n2 = _pair(P)
     return euclid(_select_branch(n1, n2, branch_axis))
 
 
@@ -155,9 +155,9 @@ def three_link_revised(a, b, c):
     K2 = SphereN3(A, 1)
     helper, branch_axis = _helper_direction(a, b, c)
     HE = U ^ helper ^ A ^ einf
-    n1, n2 = (normalise_point(n) for n in _pair(meet(U ^ A ^ einf, K2)))
+    n1, n2 = _pair(meet(U ^ A ^ einf, K2))
     Wp = n1 if -(U | n1).scalar() > -(U | n2).scalar() else n2
-    p, q = (normalise_point(n) for n in _pair(meet(meet((U - Wp).dual(), K2), HE)))
+    p, q = _pair(meet(meet((U - Wp).dual(), K2), HE))
     E2 = _select_branch(p, q, branch_axis)
     m = U - A                                           # IPNS bisector plane of U and A
     E1 = -(m * E2 * m.inverse())
