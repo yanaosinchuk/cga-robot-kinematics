@@ -138,3 +138,21 @@ def test_geometric_product_is_associative_for_random_multivectors():
         rhs = A * (B * C)
         np.testing.assert_allclose(lhs.c, rhs.c, atol=2e-13, rtol=2e-13)
 
+def test_conformal_point_conversion_is_invariant_to_small_nonzero_scale():
+    point = cga.VecN3(1.25, -0.75, 2.0)
+    scaled = 1e-15 * point
+
+    np.testing.assert_allclose(cga.euclid(scaled), [1.25, -0.75, 2.0], atol=1e-12)
+    np.testing.assert_allclose(
+        cga.normalise_point(scaled).c,
+        cga.normalise_point(point).c,
+        atol=1e-12,
+        rtol=1e-12,
+    )
+
+
+def test_inverse_is_scale_invariant_for_non_null_blade():
+    blade = 1e-12 * (cga.e1 ^ cga.e2)
+    identity = blade * blade.inverse()
+    np.testing.assert_allclose(identity.c, cga.MV.blade(0).c, atol=1e-12)
+
