@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml/badge.svg)](https://github.com/yanaosinchuk/cga-robot-kinematics/actions/workflows/tests.yml)
 
-[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json)
+[Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json) · [MIT License](LICENSE) · [Citation](CITATION.cff)
 
 Computational geometry and inverse kinematics with **projective geometry** and **conformal geometric algebra (CGA)**.
 
@@ -208,6 +208,8 @@ cga-robot-kinematics/
 │
 ├── .gitattributes
 ├── .gitignore
+├── CITATION.cff
+├── LICENSE
 ├── README.md
 ├── requirements.txt
 └── requirements-dev.txt
@@ -311,7 +313,13 @@ The report reads its numerical macros from `../results/results.tex` and its gene
 
 This repository grew out of geometry and geometric-algebra coursework in the B.Sc. Applied Mathematics program at Hochschule Darmstadt.
 
-The accompanying paper records the collaboration and tool-use context of the original course material explicitly. In particular, it states that the Python programs used as part of the source material were developed jointly with a fellow student in the practical part of the course, and it documents the subsequent mathematical review and numerical validation.
+The practical coursework was initially organised in a group setting, but the code, written implementation, numerical validation, and repository material published here were produced by Yana Osinchuk. The accompanying paper documents the tool-use context and the subsequent mathematical review and validation explicitly.
+
+## License and Citation
+
+The software and documentation in this repository are released under the [MIT License](LICENSE). They may be used, modified, and redistributed subject to the licence terms.
+
+For academic use, citation metadata are provided in [`CITATION.cff`](CITATION.cff).
 
 ## Author
 
