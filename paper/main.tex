@@ -9,6 +9,7 @@
 \usepackage{microtype}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{graphicx}
+\graphicspath{{../figures/}{./}}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{array}
@@ -116,8 +117,8 @@
 % Date of submission (edit here)
 \newcommand{\SubmissionDate}{September 23, 2026}
 
-% Numbers produced by code/generate_figures.py
-\input{generated/results.tex}
+% Numbers produced by src/generate_figures.py
+\input{../results/results.tex}
 
 \begin{document}
 
@@ -127,7 +128,7 @@
 \begin{titlepage}
   \hypersetup{pageanchor=false}
   \centering
-  \hspace*{\fill}\includegraphics[width=0.5\textwidth]{figures/logo_hda.png}\par
+  \hspace*{\fill}\includegraphics[width=0.5\textwidth]{logo_hda.png}\par
   \vspace{34mm}
   {\bfseries Seminar paper in the field of Mathematics and Natural Sciences\\
    Bachelor's program in Applied Mathematics\par}
@@ -542,7 +543,7 @@ file.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{figures/projective_constructions.pdf}
+  \includegraphics[width=\textwidth]{projective_constructions.pdf}
   \caption[Two uses of homogeneous incidence]{Two uses of homogeneous incidence. (a) Euclidean perpendicular
   directions define projective bisector lines whose meet is the circumcentre.
   (b) The perpendiculars $n_0,n_1$ through $P_0$ and $P_1$ are parallel and meet
@@ -632,7 +633,7 @@ every apex with its locus and merges coincident ones.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{figures/isosceles_locus.pdf}
+  \includegraphics[width=\textwidth]{isosceles_locus.pdf}
   \caption[Isosceles apices as line--locus intersections]{(a) The five generic isosceles apices on a line parallel to the fixed
   base: $Q_3$ lies on the perpendicular bisector, $Q_1,Q_4$ on $\Sph(P_1,d)$,
   and $Q_2,Q_5$ on $\Sph(P_2,d)$. (b) Number of distinct apices as a function of
@@ -813,7 +814,7 @@ application attaches a stability criterion to the pair.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{figures/tripod_construction.pdf}
+  \includegraphics[width=\textwidth]{tripod_construction.pdf}
   \caption[Tripod construction and support polygons]{Tripod construction. (a) Patches of the three leg spheres around
   their two common points: the meet is the point pair $S_+\wedge S_-$, whose
   points are mirror images in the ground plane; the upper point $S_+$ is
@@ -930,7 +931,7 @@ at full extension $d=3$.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{figures/kinematic_constructions.pdf}
+  \includegraphics[width=\textwidth]{kinematic_constructions.pdf}
   \caption[Two-link and three-link constructions]{Kinematic constructions in the helper plane. (a) Two unit circles
   meet at the two elbows $E_\pm$; the upper one is selected after both have been
   generated. (b) The three-link program: $E_2$ lies on $\Sph(T,1)$ and on the
@@ -1311,7 +1312,7 @@ entirely a property of the formulation.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{figures/stability_analysis.pdf}
+  \includegraphics[width=\textwidth]{stability_analysis.pdf}
   \caption[Geometric and representation singularities]{Three limits. (a) Geometric singularity: the circumcentre becomes
   sensitive as the triangle approaches collinearity. (b) Geometric singularity:
   the elbow branches merge at full extension while the derivative of their
@@ -1658,20 +1659,20 @@ their changes concern the selection and classification stages discussed in
 \cref{sec:audit}.
 
 \subsection{Hausaufgabe 1: tripod with fourth support}
-\lstinputlisting[language=CLUScript]{source_tasks_revised/clucalc/Hausaufgabe1_revised.clu}
+\lstinputlisting[language=CLUScript]{../cga_kinematics/tripod_sphere_intersection.clu}
 
 \subsection{Hausaufgabe 2: two-link arm}
-\lstinputlisting[language=CLUScript]{source_tasks_revised/clucalc/Hausaufgabe2_revised.clu}
+\lstinputlisting[language=CLUScript]{../cga_kinematics/two_link_inverse_kinematics.clu}
 
 \subsection{Hausaufgabe 3: three-link arm}
-\lstinputlisting[language=CLUScript]{source_tasks_revised/clucalc/Hausaufgabe3_revised.clu}
+\lstinputlisting[language=CLUScript]{../cga_kinematics/three_link_inverse_kinematics.clu}
 
 \subsection{Python programs}
 
 The three \texttt{libcfcg} programs keep their original structure and drawing
 sequence. Their changes are summarised in \cref{tab:audit}; the core of the
 revised Aufgabe~4, the locus classification of \cref{prop:isosceles}, reads:
-\lstinputlisting[language=Python,firstline=44,lastline=73]{source_tasks_revised/python/aufgabe4_isosceles.py}
+\lstinputlisting[language=Python,firstline=44,lastline=73]{../projective_geometry/isosceles_triangle_locus.py}
 
 % =============================================================================
 \section{Reproducibility}\label{app:reproducibility}
