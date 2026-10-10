@@ -14,64 +14,73 @@ SetMode(N3_OPNS);
 
 :U = VecN3(0,0,0) : Black;                                     // shoulder
 :Kugel1 = SphereN3(U,1) : Color(0.05, 0.05, 0.6, 0.3);          // upper arm, length 1
-:A = VecN3(a,b,c) : Black;                                     // target
-:Kugel2 = SphereN3(A,1) : Color(1, 0, 0, 0.1);                 // forearm, length 1
+:A = VecN3(a,b,c) : Black;                                      // target
+:Kugel2 = SphereN3(A,1) : Color(1, 0, 0, 0.1);                  // forearm, length 1
 
 // ground plate (display only)
 :X = VecN3(2,0,0) : Color(0.05, 0.05, 0.6, 1);
 :Y = VecN3(0,0,2) : Color(0.05, 0.05, 0.6, 1);
 :Bodenplatte = 4*(U^X^Y^einf) : Color(0.96, 0.90, 0.70, 0.6);
 
-// vertical helper plane through U and A
 d2 = a*a + b*b + c*c;
-radial2 = a*a + c*c;
-if (radial2 > 0.000000000001*d2)
+if (d2 == 0)
 {
-  H = VecN3(0,1,0);
-  BranchAxis = 2;              // e2: prefer the upper branch
+  // Coincident shoulder and target: infinitely many elbows for equal links.
+  ?DegenerateTarget = 1;
 }
 else
 {
-  H = VecN3(1,0,0);
-  BranchAxis = 1;              // e1: deterministic fallback on the vertical axis
-}
-:E = 8*(U^H^A^einf) : Color(0.0, 0.3, 0.2, 0.3);
-
-// circle of all possible elbows, then its meet with the helper plane
-:S_kreis = *(*Kugel1 ^ *Kugel2) : Black;
-S_points = *(*S_kreis ^ *E);
-?Klass = S_points . S_points;      // > 0: reachable, 0: fully stretched, < 0: unreachable
-
-if (Klass < 0)
-{
-  ?Unreachable = 1;
-}
-else
-{
-  Pp1 = ( sqrt(Klass) + S_points) / (einf . S_points);
-  Pp2 = (-sqrt(Klass) + S_points) / (einf . S_points);
-  N_Pp1 = Pp1 / (-(Pp1 . einf));
-  N_Pp2 = Pp2 / (-(Pp2 . einf));
-
-  // policy: upper elbow; on the vertical axis both candidates have the same
-  // y-coordinate, so the helper-plane fallback selects the +x branch.
-  if (BranchAxis == 2)
+  // Vertical helper plane through U and A. If A lies on the vertical axis,
+  // use the x direction so that the plane remains defined.
+  radial2 = a*a + c*c;
+  if (radial2 > 0.000000000001*d2)
   {
-    if (N_Pp1 . e2 > N_Pp2 . e2)
-    {elbow = N_Pp1}
-    else
-    {elbow = N_Pp2}
+    H = VecN3(0,1,0);
+    BranchAxis = 2;              // e2: prefer the upper branch
   }
   else
   {
-    if (N_Pp1 . e1 > N_Pp2 . e1)
-    {elbow = N_Pp1}
-    else
-    {elbow = N_Pp2}
+    H = VecN3(1,0,0);
+    BranchAxis = 1;              // e1: deterministic fallback on the vertical axis
   }
-  :elbow;
-  ?elbow;
+  :E = 8*(U^H^A^einf) : Color(0.0, 0.3, 0.2, 0.3);
 
-  DrawLine(U, elbow);        // upper arm
-  DrawLine(elbow, A);        // forearm
+  // Circle of all possible elbows, then its meet with the helper plane.
+  :S_kreis = *(*Kugel1 ^ *Kugel2) : Black;
+  S_points = *(*S_kreis ^ *E);
+  ?Klass = S_points . S_points;  // > 0: two real, 0: tangent, < 0: unreachable
+
+  if (Klass < 0)
+  {
+    ?Unreachable = 1;
+  }
+  else
+  {
+    Pp1 = ( sqrt(Klass) + S_points) / (einf . S_points);
+    Pp2 = (-sqrt(Klass) + S_points) / (einf . S_points);
+    N_Pp1 = Pp1 / (-(Pp1 . einf));
+    N_Pp2 = Pp2 / (-(Pp2 . einf));
+
+    // Policy: upper elbow; on the vertical axis both candidates have the same
+    // y-coordinate, so the helper-plane fallback selects the +x branch.
+    if (BranchAxis == 2)
+    {
+      if (N_Pp1 . e2 > N_Pp2 . e2)
+      {elbow = N_Pp1}
+      else
+      {elbow = N_Pp2}
+    }
+    else
+    {
+      if (N_Pp1 . e1 > N_Pp2 . e1)
+      {elbow = N_Pp1}
+      else
+      {elbow = N_Pp2}
+    }
+
+    :elbow;
+    ?elbow;
+    DrawLine(U, elbow);
+    DrawLine(elbow, A);
+  }
 }
