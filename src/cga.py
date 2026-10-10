@@ -101,6 +101,8 @@ class MV:
 
     def __truediv__(self, o):
         if np.isscalar(o):
+            if o == 0:
+                raise ZeroDivisionError("division by zero")
             return MV(self.c / o)
         return self * o.inverse()
 
@@ -202,7 +204,7 @@ def meet3(A: MV, B: MV, C: MV) -> MV:
 def euclid(X: MV) -> np.ndarray:
     """Euclidean coordinates of a (not necessarily normalised) conformal point."""
     w = -(X | einf).scalar()
-    if abs(w) < 1e-14:
+    if abs(w) < 1e-14 or not np.isfinite(w):
         raise ZeroDivisionError("point at infinity / flat object")
     return np.array([X.c[1], X.c[2], X.c[4]]) / w
 
