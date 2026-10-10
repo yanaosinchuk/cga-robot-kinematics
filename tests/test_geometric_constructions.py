@@ -328,3 +328,11 @@ def test_trilateration_rejects_invalid_radii_and_classifies_tangent():
     assert tangent.status == "tangent"
     np.testing.assert_allclose(tangent.candidates[0], [0.0, 0.0, 0.0], atol=1e-12)
 
+def test_revised_cga_kinematics_handle_tangent_boundaries():
+    elbow = constructions.two_link_revised(2.0, 0.0, 0.0)
+    np.testing.assert_allclose(elbow, [1.0, 0.0, 0.0], atol=1e-12)
+
+    e1, e2 = constructions.three_link_revised(3.0, 0.0, 0.0)
+    np.testing.assert_allclose(e1, [1.0, 0.0, 0.0], atol=1e-12)
+    np.testing.assert_allclose(e2, [2.0, 0.0, 0.0], atol=1e-12)
+
