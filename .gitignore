@@ -2,13 +2,21 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
+build/
+dist/
+*.egg-info/
 
 # IDE / OS
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db
 
 # LaTeX build products
 paper/*.aux
@@ -23,6 +31,10 @@ paper/*.toc
 paper/*.lof
 paper/*.lot
 paper/*.lol
+paper/*.bcf
+paper/*.run.xml
+paper/main.pdf
 
-# Temporary outputs
+# Temporary/local outputs
 tmp/
+.cache/
