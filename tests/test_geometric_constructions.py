@@ -336,3 +336,32 @@ def test_revised_cga_kinematics_handle_tangent_boundaries():
     np.testing.assert_allclose(e1, [1.0, 0.0, 0.0], atol=1e-12)
     np.testing.assert_allclose(e2, [2.0, 0.0, 0.0], atol=1e-12)
 
+def test_projective_classification_is_scale_invariant():
+    base_points = (
+        np.array([-1.4, 0.1]),
+        np.array([1.55, 0.35]),
+        np.array([0.1, 2.0]),
+    )
+
+    for scale in (1e-6, 1.0, 1e6):
+        points = tuple(scale * p for p in base_points)
+        circle = G.circumcircle(*points)
+        assert circle.status == "regular"
+        assert circle.residual < 1e-11
+
+        foot = G.perpendicular_foot(
+            scale * np.array([0.0, 0.0]),
+            scale * np.array([2.0, 0.0]),
+            scale * np.array([0.5, 1.0]),
+        )
+        assert foot.status == "regular"
+        assert foot.residual < 1e-11
+
+        iso = G.isosceles_candidates(
+            scale * np.array([0.0, 0.6]),
+            scale * np.array([-1.0, 0.0]),
+            scale * np.array([1.0, 0.0]),
+        )
+        assert iso.status == "regular"
+        assert len(iso.candidates) == 5
+
