@@ -195,3 +195,39 @@ def test_original_three_link_contains_degenerate_auxiliary_point_at_d_equal_one(
     np.testing.assert_allclose(e1, reference[0], atol=1e-13)
     np.testing.assert_allclose(e2, reference[1], atol=1e-13)
 
+
+def test_perpendicular_foot_classifies_coincident_base_points():
+    result = G.perpendicular_foot(
+        np.array([1.0, 2.0]),
+        np.array([1.0, 2.0]),
+        np.array([3.0, 4.0]),
+    )
+
+    assert result.status == "degenerate"
+
+
+def test_isosceles_locus_classifies_coincident_base_points():
+    result = G.isosceles_candidates(
+        np.array([0.0, 1.0]),
+        np.array([2.0, 0.0]),
+        np.array([2.0, 0.0]),
+    )
+
+    assert result.status == "degenerate"
+
+
+def test_reference_kinematics_classifies_unreachable_targets():
+    two = G.two_link(np.zeros(2), np.array([2.1, 0.0]))
+    three = G.three_link_trapezoid(np.zeros(2), np.array([3.1, 0.0]))
+
+    assert two.status == "empty"
+    assert three.status == "empty"
+
+
+def test_cga_kinematics_rejects_unreachable_targets():
+    with np.testing.assert_raises(constructions.Imaginary):
+        constructions.two_link_revised(2.1, 0.0, 0.0)
+
+    with np.testing.assert_raises(constructions.Imaginary):
+        constructions.three_link_revised(3.1, 0.0, 0.0)
+
