@@ -4,160 +4,114 @@
 
 [Technical report](paper/from_ideal_points_to_robot_joints.pdf) · [LaTeX source](paper/main.tex) · [Numerical results](results/results.json) · [MIT License](LICENSE) · [Citation](CITATION.cff)
 
-Computational geometry and inverse kinematics with **projective geometry** and **conformal geometric algebra (CGA)**.
+Computational geometry for robotics with **conformal geometric algebra (CGA)**, projective geometry, and independent numerical validation.
 
-This project studies how geometric constructions can be expressed as algebraic operations on geometric objects rather than as isolated coordinate formulas. The examples range from ideal points and circle constructions in the projective plane to two-link and three-link inverse kinematics, three-sphere intersection, and tripod stability in 3D.
+The project turns inverse-kinematics and geometric-construction problems into intersections of geometric primitives, keeps all solution branches explicit, and separates geometric construction from application-specific branch selection.
+
+## Robotics Problem
+
+Inverse kinematics is often implemented as a collection of coordinate formulas. That works, but it can hide three things that matter in robotics: **multiple valid branches**, **singular configurations**, and **the geometric meaning of failure**.
+
+This repository studies those issues through three robotics-oriented constructions:
+
+- **Two-link inverse kinematics:** two link spheres and a helper plane produce the two elbow branches.
+- **Three-link inverse kinematics:** an isosceles-trapezoid construction gives a three-link chain and exposes a representation singularity in the original formulation near target distance $d=1$.
+- **Tripod support geometry:** three spheres determine the apex; a fourth support is selected from two candidates using a stability criterion.
 
 ![Two-link and three-link inverse-kinematics constructions](figures/kinematic_constructions.png)
 
-## What This Project Demonstrates
+The goal is not to replace standard matrix-based robotics methods. It is to show how a geometric representation can make branches, intersections, and singularities explicit and testable.
 
-The project combines mathematical modelling, numerical validation, and robotics-oriented geometry:
+## Geometric Formulation
 
-- a transparent NumPy implementation of the conformal geometric algebra $G(4,1)$,
-- projective constructions using homogeneous coordinates and ideal points,
-- two-link and three-link inverse kinematics,
-- sphere, plane, circle, and point-pair intersections in CGA,
-- explicit branch selection for multiple geometric solutions,
-- detection and analysis of geometric and representation singularities,
-- static-stability analysis for a tripod with an additional support,
-- Monte Carlo validation against independent Euclidean reference formulas,
-- CLUCalc implementations of the principal 3D constructions.
-
-The central design idea is a six-stage geometric pipeline:
+The common pattern is:
 
 ~~~text
 encode -> construct -> intersect -> factor -> select -> validate
 ~~~
 
-This separates the geometry of the solution set from the application-specific decision of which candidate should be selected.
+A geometric solver first constructs the **full solution set**. Only afterwards does a policy select the branch appropriate for the application. This prevents statements such as “upper elbow” or “outer support” from being confused with the underlying mathematics.
 
-## Key Results
+Projective geometry is used for the planar incidence layer:
 
-The checked-in numerical experiment uses seed `20260922` and validates the constructions over thousands of randomly generated configurations.
+- circumcentre as the meet of two perpendicular bisectors,
+- perpendicular construction through an ideal point,
+- all isosceles-triangle apices on a prescribed parallel line.
 
-| Experiment | Samples | Result |
-| --- | ---: | ---: |
-| Projective constructions | 5,000 | max residual $3.42\times10^{-14}$ |
-| Two-link kinematics | 10,000 | max residual $4.44\times10^{-16}$ |
-| Three-link kinematics | 10,000 | max residual $4.44\times10^{-16}$ |
-| Isosceles-locus candidate count | 19,944 | 0 count mismatches |
-| Isosceles-locus residual | 19,944 | max residual $5.16\times10^{-15}$ |
+CGA is used for the 3D distance-geometry layer:
 
-A particularly important result concerns the three-link construction. The original representation becomes numerically unstable near target distance $d=1$, although the robot configuration itself is geometrically regular. A reflection-based reformulation removes this representation singularity: across the tested sequence down to $|d-1|=10^{-14}$, the revised construction remains at approximately machine precision, with a maximum reported position error of $6.27\times10^{-16}$.
+- spheres, planes, circles, and point pairs share one algebraic representation,
+- meets compute intersections,
+- point-pair factorisation exposes multiple solutions,
+- reflection gives a robust reformulation of the three-link construction.
 
-![Conditioning and singularity analysis](figures/stability_analysis.png)
-
-The tripod experiment also illustrates the difference between satisfying distance constraints and obtaining a physically useful configuration. The three-leg support has a negative stability margin of approximately $-0.669$. Selecting the outer candidate for the fourth support changes the margin to approximately $+0.304$.
+The tripod example also separates geometric feasibility from the engineering decision. In the numerical example, the stability margin is evaluated **assuming the load acts at the apex**; the outer fourth-support candidate changes the margin from approximately $-0.669$ to $+0.304$.
 
 ![Three-sphere meet and tripod support geometry](figures/tripod_construction.png)
 
-The complete numerical ledger is stored in [`results/results.json`](results/results.json).
+## CGA Implementation
 
-## Geometry and Robotics Problems
+[`src/cga.py`](src/cga.py) is a transparent NumPy implementation of the conformal geometric algebra $G(4,1)$ used by the CLUCalc N3 model.
 
-### Projective Geometry
+A multivector is stored with $2^5=32$ basis-blade coefficients. The implementation includes:
 
-The planar constructions use homogeneous coordinates in $\mathbb{P}^2$, where joins and meets are represented by cross products and parallel lines intersect at ideal points.
+- geometric, outer, and inner products,
+- left contraction,
+- reverse and blade/versor inverse,
+- duality,
+- conformal point embedding,
+- OPNS/IPNS spheres,
+- two-object and three-object meets,
+- conformal point normalisation,
+- point-pair classification and extraction.
 
-The repository contains three explicit constructions:
+[`src/cga_constructions.py`](src/cga_constructions.py) contains executable CGA transcriptions of the robotics constructions, including both the audited original formulations and the revised formulations used for the robust solutions.
 
-- **Circumcircle construction** — obtains the circumcentre as the meet of two perpendicular bisectors.
-- **Perpendicular foot via an ideal point** — represents the common direction of parallel perpendiculars by a point at infinity.
-- **Isosceles-triangle locus** — enumerates all admissible apices on a line parallel to the base and analyses when the candidate count changes.
+The portfolio-facing CLUCalc versions are in [`cga_kinematics/`](cga_kinematics/).
+
+## Validation Strategy
+
+The CGA implementation is checked against independent Euclidean and projective reference formulas in [`src/geometry.py`](src/geometry.py), rather than validating an implementation against itself.
+
+The validation layer includes:
+
+- algebraic tests for the $G(4,1)$ metric, null basis, duality, conformal distance, sphere incidence, and point-pair extraction,
+- projective covariance tests under random homographies,
+- randomized two-link and three-link constraint checks,
+- exact tests at special isosceles-locus heights,
+- tripod distance and support-polygon checks,
+- regression tests for the three-link representation singularity at $d=1$,
+- a reproducibility smoke test in GitHub Actions.
+
+The main experiment uses the fixed random seed `20260922`. The source scripts in [`projective_geometry/`](projective_geometry/) require the external course library `libcfcg`; the automated validation therefore checks their mathematical constructions through the independent NumPy reference layer.
+
+## Results at a Glance
+
+The checked-in full experiment validates the regular configurations at approximately floating-point precision:
+
+| Experiment | Samples | Result |
+| --- | ---: | ---: |
+| Projective join/meet covariance | 5,000 | max error $3.42\times10^{-14}$ |
+| Two-link distance constraints | 10,000 | max residual $4.44\times10^{-16}$ |
+| Three-link distance constraints | 10,000 | max residual $4.44\times10^{-16}$ |
+| Isosceles-locus candidate count | 19,944 | 0 count mismatches |
+| Isosceles-locus residual | 19,944 | max residual $5.16\times10^{-15}$ |
+
+The strongest numerical result is the three-link singularity analysis. The original construction becomes increasingly inaccurate as $d\to1$, although the geometric three-link configuration remains regular there. The reflection-based reformulation removes that representation singularity: over the tested sequence down to $|d-1|=10^{-14}$, the revised construction stays below $6.27\times10^{-16}$ position error.
+
+![Conditioning and singularity analysis](figures/stability_analysis.png)
+
+The complete machine-readable ledger is available in [`results/results.json`](results/results.json).
+
+## Projective Geometry Examples
+
+The planar examples are kept because they show the same construction logic in a simpler setting before it is applied to robot kinematics.
 
 ![Projective constructions](figures/projective_constructions.png)
 
-The corresponding course-library programs are in [`projective_geometry/`](projective_geometry/). They depend on the external `libcfcg` teaching library and are therefore separate from the standalone NumPy validation code.
+The isosceles-locus example makes solution multiplicity especially visible: depending on the distance between the parallel line and the base, the construction has one, three, or five distinct admissible apices.
 
-### Two-Link Inverse Kinematics
-
-For a two-link arm with unit link lengths, the elbow is obtained from the intersection of two spheres: one centred at the shoulder and one centred at the target. Their intersection is restricted by a helper plane, leaving a point pair corresponding to the two elbow branches.
-
-The implementation makes branch selection explicit instead of treating the first algebraic solution as automatically correct.
-
-Relevant files:
-
-~~~text
-cga_kinematics/two_link_inverse_kinematics.clu
-src/geometry.py
-src/cga_constructions.py
-~~~
-
-### Three-Link Inverse Kinematics
-
-The three-link construction is formulated geometrically as an isosceles-trapezoid problem. The revised formulation selects an auxiliary point explicitly, constructs one elbow from a circle-plane meet, and obtains the other through reflection in the bisector plane of shoulder and target.
-
-This reformulation removes a representation singularity present in the original construction near $d=1$.
-
-Relevant files:
-
-~~~text
-cga_kinematics/three_link_inverse_kinematics.clu
-src/geometry.py
-src/cga_constructions.py
-~~~
-
-### Tripod from Three-Sphere Intersection
-
-The tripod apex is reconstructed as one point of the intersection of three spheres whose centres are the three feet and whose radii are the leg lengths.
-
-A fourth support is then constructed by intersecting:
-
-1. a sphere centred at the selected apex,
-2. the ground plane,
-3. a vertical helper plane.
-
-The final support point is selected according to static stability rather than algebraic ordering.
-
-Relevant files:
-
-~~~text
-cga_kinematics/tripod_sphere_intersection.clu
-src/geometry.py
-src/cga_constructions.py
-~~~
-
-## Conformal Geometric Algebra Engine
-
-[`src/cga.py`](src/cga.py) contains a small NumPy implementation of $G(4,1)$, the conformal geometric algebra used by the CLUCalc N3 model.
-
-It represents a multivector using the $2^5=32$ basis blades and implements the operations needed by the constructions in this project, including:
-
-- geometric product,
-- outer product,
-- inner product,
-- left contraction,
-- reverse and inverse,
-- duality,
-- conformal point embedding,
-- spheres in OPNS/IPNS form,
-- two-object and three-object meets,
-- conformal point normalization,
-- point-pair classification and extraction.
-
-The goal is transparency rather than performance: the implementation provides an independent numerical environment in which the CLUCalc constructions can be checked against Euclidean reference solutions.
-
-## Numerical Validation
-
-[`src/geometry.py`](src/geometry.py) contains independent Euclidean/projective reference implementations. Each construction returns a structured result containing its status, all candidates, the selected solution, residuals, and diagnostic information.
-
-The numerical study checks:
-
-- projective covariance,
-- kinematic distance constraints,
-- candidate-count formulas,
-- tripod stability,
-- conditioning near geometric degeneracies,
-- the three-link representation singularity,
-- agreement between CGA constructions and independent reference formulas.
-
-Stored numerical outputs are available as both machine-readable and LaTeX-ready files:
-
-~~~text
-results/results.json
-results/results.tex
-~~~
+![Isosceles-locus candidate structure](figures/isosceles_locus.png)
 
 ## Repository Structure
 
