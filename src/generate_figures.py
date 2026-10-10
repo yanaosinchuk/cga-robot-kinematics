@@ -268,7 +268,7 @@ for t in T3:
         n_fail += 1
 cga["three_swap_fail"] = n_fail / len(T3)
 to, tr = hw.tripod_original(), hw.tripod_revised()
-cga["tripod_rev"] = float(max(np.linalg.norm(tr["spitze"] - S_plus), np.linalg.norm(tr["aussen"] - Q_out)))
+cga["tripod_rev"] = float(max(np.linalg.norm(tr["apex"] - S_plus), np.linalg.norm(tr["outer_foot"] - Q_out)))
 cga["tripod_orig"] = float(max(np.linalg.norm(to["spitze"] - S_plus), np.linalg.norm(to["aussen"] - Q_out)))
 results["cga"] = cga
 
