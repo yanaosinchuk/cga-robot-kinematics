@@ -1326,8 +1326,10 @@ entirely a property of the formulation.
   sensitive as the triangle approaches collinearity. (b) Geometric singularity:
   the elbow branches merge at full extension while the derivative of their
   height diverges. (c) Representation singularity: the original three-link
-  construction loses accuracy like $\varepsilon_{\mathrm{mach}}/\abs{d-1}$ near
-  $d=1$, where the arm is regular; the reflection-based construction does not.}
+  construction becomes increasingly inaccurate near $d=1$, consistently with
+  $\varepsilon_{\mathrm{mach}}/\abs{d-1}$ over the tested range; the
+  reflection-based construction avoids the degenerate intermediate plane and
+  remains near machine precision.}
   \label{fig:stability}
 \end{figure}
 
@@ -1373,7 +1375,7 @@ revisions reproduced in \cref{app:programs}.
     Aufgabe 4 & Tangency and coincidences are not reported, so the equilateral apex is drawn three times; $P_0$ on the base line is not detected; fixed drawing window. & Classification per locus (\cref{prop:isosceles}), merging of coincident apices, degeneracy test, data-driven window. \\
     Hausaufgabe 1 & The apex \texttt{Spitze} is selected, but legs and the fourth sphere use \texttt{N\_Pp2}, and the last leg is drawn to \texttt{N\_Pp4} instead of \texttt{AußenPunkt}; whether this is correct depends on the ordering of the pair (\cref{lem:pointpair}). Duplicated header, non-ASCII identifiers. & Selected points used throughout; header cleaned; ASCII identifiers. \\
     Hausaufgabe 2 & Helper plane undefined for targets on the vertical axis; sliders reach $d>2$ without a reachability test. & Fallback direction; classification by the sign of $P\cdot P$ before factorisation. \\
-    Hausaufgabe 3 & Correctness relies on the implicit order of \texttt{N\_Pp1}, \texttt{N\_Pp2}; representation singularity at $d=1$. & $W_+$ chosen by distance; $E_1$ by the reflection \cref{eq:reflection}. \\
+    Hausaufgabe 3 & Correctness relies on the implicit order of \texttt{N\_Pp1}, \texttt{N\_Pp2}; at $d=1$ one auxiliary point coincides with the shoulder, so the corresponding bisector plane degenerates. & $W_+$ chosen by distance; $E_1$ by the reflection \cref{eq:reflection}. \\
     All CLUCalc & Normalisation by multiplication with $-X\cdot\einf$; correct only because the weight is $\pm1$. & Division by the weight $-X\cdot\einf$. \\
     \bottomrule
   \end{tabularx}
