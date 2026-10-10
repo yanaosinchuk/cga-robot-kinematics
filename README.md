@@ -16,7 +16,7 @@ This repository studies those issues through three robotics-oriented constructio
 
 - **Two-link inverse kinematics:** two link spheres and a helper plane produce the two elbow branches.
 - **Three-link inverse kinematics:** an isosceles-trapezoid construction gives a three-link chain and exposes a representation singularity in the original formulation near target distance $d=1$.
-- **Tripod support geometry:** three spheres determine the apex; a fourth support is selected from two candidates using a stability criterion.
+- **Tripod support geometry:** three spheres determine the apex; two fourth-support candidates are generated and then compared through a support-polygon stability analysis.
 
 ![Two-link and three-link inverse-kinematics constructions](figures/kinematic_constructions.png)
 
