@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this repository in academic work, please cite it."
+title: "CGA Robot Kinematics: From Ideal Points to Robot Joints"
+type: software
+authors:
+  - family-names: Osinchuk
+    given-names: Yana
+repository-code: "https://github.com/yanaosinchuk/cga-robot-kinematics"
+abstract: >-
+  Computational geometry and inverse-kinematics constructions using
+  projective geometry and conformal geometric algebra, with independent
+  numerical validation and singularity analysis.
+keywords:
+  - computational geometry
+  - conformal geometric algebra
+  - inverse kinematics
+  - robotics
+  - projective geometry
