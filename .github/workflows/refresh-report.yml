@@ -1,0 +1,44 @@
+name: refresh-report
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: contains(github.event.head_commit.message, '[refresh-report]')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install LaTeX toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            latexmk \
+            texlive-latex-extra \
+            texlive-fonts-recommended \
+            texlive-science
+
+      - name: Compile technical report
+        working-directory: paper
+        run: |
+          latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+          mv -f main.pdf from_ideal_points_to_robot_joints.pdf
+
+      - name: Commit refreshed PDF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add paper/from_ideal_points_to_robot_joints.pdf
+          if git diff --cached --quiet; then
+            echo "No PDF changes to commit."
+          else
+            git commit -m "Refresh technical report PDF [skip ci]"
+            git pull --rebase origin main
+            git push
+          fi
