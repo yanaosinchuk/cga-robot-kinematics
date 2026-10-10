@@ -200,13 +200,14 @@ experiments also separate two kinds of singularity. \emph{Geometric}
 singularities, such as collinear points or a fully stretched arm, are
 intrinsic: circumcentres and elbows become ill-conditioned in every
 formulation. \emph{Representation} singularities are artefacts of a particular
-construction: the original three-link program breaks down at target distance
-$d=1$, although the arm is perfectly regular there, and its error grows like
-$\varepsilon_{\mathrm{mach}}/\abs{d-1}$. A reflection-based reformulation removes
-this defect completely. The audit further shows why the submitted tripod needs
-its fourth leg: the apex projects outside the support triangle (stability
-margin $\MarginTripod$), and only the outer foot restores static stability
-(margin $+\MarginOut$).
+construction: at target distance $d=1$ the original three-link formulation
+creates the zero bisector $O-W_-$ although the arm configuration itself is
+regular, and the measured error grows consistently with
+$\varepsilon_{\mathrm{mach}}/\abs{d-1}$ as this configuration is approached.
+A reflection-based reformulation removes this intermediate degeneracy. For the
+tripod example, under the stated model in which the load acts at the apex, the
+three-leg support has margin $\MarginTripod$ and the outer fourth-foot
+candidate changes the margin to $+\MarginOut$.
 
 The underlying projective and conformal models are established theory; no
 claim is made that the algebra itself is new. The contribution is the
