@@ -67,7 +67,7 @@ A multivector is stored with $2^5=32$ basis-blade coefficients. The implementati
 
 [`src/cga_constructions.py`](src/cga_constructions.py) contains executable CGA transcriptions of the robotics constructions, including both the audited original formulations and the revised formulations used for the robust solutions.
 
-The portfolio-facing CLUCalc versions are in [`cga_kinematics/`](cga_kinematics/).
+The portfolio-facing CLUCalc versions are in [`cga_kinematics/`](cga_kinematics/). The revised kinematic implementations classify invalid intersections before factorisation and use a deterministic helper-plane fallback when the target lies on the vertical axis.
 
 ## Validation Strategy
 
@@ -78,6 +78,8 @@ The validation layer includes:
 - algebraic tests for the $G(4,1)$ metric, null basis, duality, conformal distance, sphere incidence, and point-pair extraction,
 - projective covariance tests under random homographies,
 - randomized two-link and three-link constraint checks,
+- explicit degenerate, unreachable, tangent, and vertical-axis cases,
+- translation- and scale-invariance checks for the projective constructions,
 - exact tests at special isosceles-locus heights,
 - tripod distance and support-polygon checks,
 - regression tests for the three-link representation singularity at $d=1$,
