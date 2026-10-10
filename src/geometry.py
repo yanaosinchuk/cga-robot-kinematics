@@ -98,7 +98,12 @@ def circumcircle(P0, P1, P2) -> ConstructionResult:
 
 
 # ---- Task P2: perpendicular foot through an ideal point --------------------
-def perpendicular_foot(P0, P1, P2) -> ConstructionResult:
+def perpendicular_foot(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
+    P0, P1, P2 = (np.asarray(v, float) for v in (P0, P1, P2))
+    scale = max(1.0, np.linalg.norm(P0), np.linalg.norm(P1))
+    if np.linalg.norm(P1 - P0) <= tau * scale:
+        return ConstructionResult("degenerate", info={"reason": "P0 and P1 coincide"})
+
     p0, p1, p2 = (hpoint(*v) for v in (P0, P1, P2))
     L = join(p0, p1)
     I_perp = np.array([L[0], L[1], 0.0])            # normal direction of L as ideal point
@@ -124,6 +129,10 @@ def isosceles_candidates(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P0, P1, P2 = (np.asarray(v, float) for v in (P0, P1, P2))
     u = P2 - P1
     d = np.linalg.norm(u)
+    base_scale = max(1.0, np.linalg.norm(P1), np.linalg.norm(P2))
+    if d <= tau * base_scale:
+        return ConstructionResult("degenerate", info={"reason": "P1 and P2 coincide"})
+
     u_hat = u / d
     n_hat = np.array([-u_hat[1], u_hat[0]])
     h = (P0 - P1) @ n_hat                              # signed height of the parallel
