@@ -381,6 +381,19 @@ def tripod(A, B, C, rA, rB, rC, r4, up=None):
 # --------------------------------------------------------------------------
 # Kinematic chains (in the plane of the helper chart)
 # --------------------------------------------------------------------------
+def _prepare_kinematic_inputs(O, T, up):
+    O, T = np.asarray(O, float), np.asarray(T, float)
+    if O.ndim != 1 or T.shape != O.shape or O.size not in (2, 3):
+        raise ValueError("O and T must be matching 2D or 3D vectors")
+
+    if up is None:
+        up = np.eye(O.size)[1]
+    up = np.asarray(up, float)
+    if up.shape != O.shape or np.linalg.norm(up) == 0.0:
+        raise ValueError("up must be a non-zero vector matching O and T")
+    return O, T, up / np.linalg.norm(up)
+
+
 def _in_plane_perp(u, up, projection_tol_sq: float = 1e-12):
     """Preferred transverse direction for a motion plane.
 
@@ -410,10 +423,7 @@ def _in_plane_perp(u, up, projection_tol_sq: float = 1e-12):
 
 def two_link(O, T, l1=1.0, l2=1.0, up=None, tau: float = 1e-12) -> ConstructionResult:
     """Elbow of a planar/spatial two-link arm in the motion plane spanned by T-O and `up`."""
-    O, T = np.asarray(O, float), np.asarray(T, float)
-    dim = O.size
-    if up is None:
-        up = np.eye(dim)[1]
+    O, T, up = _prepare_kinematic_inputs(O, T, up)
     v = T - O
     d = np.linalg.norm(v)
     if l1 <= 0 or l2 <= 0:
@@ -422,15 +432,20 @@ def two_link(O, T, l1=1.0, l2=1.0, up=None, tau: float = 1e-12) -> ConstructionR
         return ConstructionResult("degenerate", info={"reason": "target at shoulder"})
     u = v / d
     u_perp = _in_plane_perp(u, up)
+    reach_scale = max(l1, l2, d)
+    if d < abs(l1 - l2) - tau * reach_scale or d > l1 + l2 + tau * reach_scale:
+        return ConstructionResult("empty", info={"d": d})
+
     a = (l1 ** 2 - l2 ** 2 + d ** 2) / (2 * d)
     q = l1 ** 2 - a ** 2
-    if q < -tau * l1 ** 2:
+    q_scale = max(l1 ** 2, a ** 2)
+    if q < -tau * q_scale:
         return ConstructionResult("empty", info={"d": d})
     h = np.sqrt(max(q, 0.0))
     E = [O + a * u + h * u_perp, O + a * u - h * u_perp]
     sel = E[0]
     res = max(abs(np.linalg.norm(sel - O) - l1), abs(np.linalg.norm(T - sel) - l2))
-    return ConstructionResult("tangent" if q <= tau * l1 ** 2 else "regular", E, sel, res,
+    return ConstructionResult("tangent" if q <= tau * q_scale else "regular", E, sel, res,
                               {"d": d, "h": h})
 
 
@@ -440,10 +455,7 @@ def three_link_trapezoid(O, T, l=1.0, up=None, tau: float = 1e-12) -> Constructi
     This is the closed form of what the CLUCalc task 3 actually constructs:
     E2 on the bisector plane of O and W+ = T + l*u, at distance l from T;
     E1 is the mirror image of E2 in the bisector plane of O and T."""
-    O, T = np.asarray(O, float), np.asarray(T, float)
-    dim = O.size
-    if up is None:
-        up = np.eye(dim)[1]
+    O, T, up = _prepare_kinematic_inputs(O, T, up)
     v = T - O
     d = np.linalg.norm(v)
     if l <= 0:
@@ -454,13 +466,14 @@ def three_link_trapezoid(O, T, l=1.0, up=None, tau: float = 1e-12) -> Constructi
     u_perp = _in_plane_perp(u, up)
     a = 0.5 * (d - l)
     q = l * l - a * a
-    if q < -tau * l * l:
+    q_scale = max(l * l, a * a)
+    if q < -tau * q_scale:
         return ConstructionResult("empty", info={"d": d})
     h = np.sqrt(max(q, 0.0))
     E1 = O + a * u + h * u_perp
     E2 = E1 + l * u
     res = max(abs(np.linalg.norm(E1 - O) - l), abs(np.linalg.norm(E2 - E1) - l),
               abs(np.linalg.norm(T - E2) - l))
-    return ConstructionResult("tangent" if q <= tau * l * l else "regular",
+    return ConstructionResult("tangent" if q <= tau * q_scale else "regular",
                               [(E1, E2), (O + a * u - h * u_perp, O + a * u - h * u_perp + l * u)],
                               (E1, E2), res, {"d": d, "h": h})
