@@ -443,11 +443,14 @@ vector or taking the square root of a negative discriminant.
 
 \textbf{Fourth, the source programs are themselves objects of study.} Each
 CLUCalc construction is transcribed line by line into an independent NumPy
-implementation of $\GA$ and executed on thousands of configurations; each Python
-program is executed against a headless stand-in of \texttt{libcfcg}. The results
-are compared with closed-form Euclidean solutions. This turns the exercises into
-testable specifications and reveals the defects documented in
-\cref{sec:audit}.
+implementation of $\GA$ and executed on thousands of configurations. The planar
+projective constructions are reimplemented independently in
+\texttt{src/geometry.py} and checked through residual and covariance tests. The
+course-library scripts in \texttt{projective\_geometry/} require the external
+\texttt{libcfcg} teaching library and are therefore not executed by the
+automated test workflow. The numerical layer is compared with closed-form
+Euclidean and projective solutions, turning the exercises into testable
+specifications and revealing the defects documented in \cref{sec:audit}.
 
 % =============================================================================
 \section{Projective Construction Layer}\label{sec:projective}
@@ -1103,10 +1106,12 @@ into the following components:
   \item \texttt{src/cga\_constructions.py}: executable NumPy/CGA
         transcriptions of the three CLUCalc constructions in their original and
         revised forms;
-  \item \texttt{tests/}: eleven automated tests for the conformal embedding,
-        projective constructions, kinematic constraints, tripod stability, and
-        agreement between the revised CGA constructions and the independent
-        reference solutions.
+  \item \texttt{tests/}: automated regression tests for the $G(4,1)$
+        algebraic identities, conformal embedding and distance relations,
+        point-pair extraction, projective constructions, kinematic constraints,
+        tripod stability, special isosceles-locus heights, the three-link
+        representation singularity, and agreement between the revised CGA
+        constructions and independent reference solutions.
 \end{itemize}
 This yields a cross-implementation validation: the constructions are executed
 in the CGA engine, while their residuals and selected solutions are checked
@@ -1307,8 +1312,8 @@ change of the elbow height even though both link lengths remain satisfied to
 machine precision.
 
 The three-link experiment isolates the representation singularity. The error of
-the original construction follows $\varepsilon_{\mathrm{mach}}/\abs{d-1}$ over
-thirteen orders of magnitude and reaches \ThreeSingOrig{} at
+the original construction grows consistently with
+$\varepsilon_{\mathrm{mach}}/\abs{d-1}$ over the tested range and reaches \ThreeSingOrig{} at
 $\abs{d-1}=10^{-7}$, while the revised construction stays below
 \ThreeSingRevMax{} for every tested $\delta$ (\cref{fig:stability}c). Since
 the trapezoid itself is well-conditioned near $d=1$, this amplification is
@@ -1460,20 +1465,24 @@ claim is made.
 
 \subsection{Improvements for production implementations}
 
-The educational programs can be developed into robust software through five
-concrete changes, all of which are realised in the revised programs of
-\cref{app:programs}:
+The educational programs can be developed into robust software through several
+concrete changes:
 \begin{enumerate}
   \item Replace fixed absolute tolerances by scale-aware thresholds.
   \item Return structured results containing status, all candidates, the
         selected candidate, and residuals.
-  \item Select candidates by explicit, named policies; use continuity-aware
-        selection for time-dependent targets.
-  \item Guard orientation, tangency, and reality predicates, using adaptive
-        precision when a discrete decision is numerically ambiguous.
-  \item Add property-based tests under rigid motions, scalings, and admissible
+  \item Select candidates by explicit, named policies; for time-dependent
+        targets, extend this to continuity-aware branch tracking.
+  \item Guard orientation, tangency, and reality predicates; adaptive
+        precision remains a useful extension when a discrete decision is
+        numerically ambiguous.
+  \item Test invariants under rigid motions, scalings, and admissible
         projective transformations of the incidence subproblems.
 \end{enumerate}
+The current repository implements the scale-aware tests, structured result
+records, explicit selection policies, algebraic invariant tests, and randomized
+covariance/constraint experiments. Continuity-aware trajectory selection and
+adaptive-precision predicates are left as future work.
 A possible result record is
 \begin{equation}
   \texttt{ConstructionResult}
@@ -1494,14 +1503,16 @@ The three-link construction selects one symmetric family of configurations and
 is not a complete parameterisation of the redundancy.
 
 The CLUCalc programs were not run in CLUCalc itself but in an independent
-implementation of $\GA$. This checks the mathematics of every statement, but
-software-specific conventions --- the sign of the dual, the definition of the
-inner product, rendering --- may differ. For this reason, conclusions that depend
-on such conventions are stated as dependencies (for instance, on the ordering of
-a point pair) rather than as failures of the submitted programs. Likewise, the
-Python programs were executed against a stand-in of \texttt{libcfcg} that
-implements only the interface they use. Finally, the perturbation study examines
-three representative singularities rather than a complete error analysis of all
+implementation of $\GA$. This checks the mathematical construction, but
+software-specific conventions --- the sign of the dual, the exact inner-product
+convention, and rendering behaviour --- may differ. For this reason,
+conclusions that depend on such conventions are stated as dependencies (for
+instance, on the ordering of a point pair) rather than as failures of the
+course programs. The scripts in \texttt{projective\_geometry/} depend on the
+external \texttt{libcfcg} teaching library and are not executed in continuous
+integration; their geometric content is instead checked by independent NumPy
+reference implementations. Finally, the perturbation study examines three
+representative singularities rather than a complete error analysis of all
 constructions.
 
 % =============================================================================
@@ -1656,11 +1667,14 @@ in agreement with \cref{fig:stability}c.
 \section{Revised Source Programs}\label{app:programs}
 % =============================================================================
 
-The revised programs are contained in the folder \texttt{source\_tasks\_revised}
-of the accompanying archive; the original programs are kept unchanged in
-\texttt{source\_tasks}. The CLUCalc programs are reproduced in full because
-their changes concern the selection and classification stages discussed in
-\cref{sec:audit}.
+The repository contains the revised CLUCalc programs in
+\texttt{cga\_kinematics/} and the revised projective-geometry programs in
+\texttt{projective\_geometry/}. For numerical auditing, the behaviour of the
+original CLUCalc formulations is retained in the functions
+\texttt{tripod\_original}, \texttt{two\_link\_original}, and
+\texttt{three\_link\_original} in
+\texttt{src/cga\_constructions.py}. The CLUCalc files below are the revised
+versions used as the portfolio-facing source programs.
 
 \subsection{Hausaufgabe 1: tripod with fourth support}
 \lstinputlisting[language=CLUScript]{../cga_kinematics/tripod_sphere_intersection.clu}
@@ -1673,8 +1687,9 @@ their changes concern the selection and classification stages discussed in
 
 \subsection{Python programs}
 
-The three \texttt{libcfcg} programs keep their original structure and drawing
-sequence. Their changes are summarised in \cref{tab:audit}; the core of the
+The three \texttt{libcfcg} programs in
+\texttt{projective\_geometry/} implement the revised planar constructions.
+Their mathematical changes are summarised in \cref{tab:audit}; the core of the
 revised Aufgabe~4, the locus classification of \cref{prop:isosceles}, reads:
 \lstinputlisting[language=Python,firstline=44,lastline=73]{../projective_geometry/isosceles_triangle_locus.py}
 
