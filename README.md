@@ -81,7 +81,7 @@ The validation layer includes:
 - exact tests at special isosceles-locus heights,
 - tripod distance and support-polygon checks,
 - regression tests for the three-link representation singularity at $d=1$,
-- a reproducibility smoke test in GitHub Actions.
+- a reproducibility smoke test in GitHub Actions with numerical invariant checks for residuals, candidate counts, tripod stability, and the revised three-link formulation.
 
 The main experiment uses the fixed random seed `20260922`. The source scripts in [`projective_geometry/`](projective_geometry/) require the external course library `libcfcg`; the automated validation therefore checks their mathematical constructions through the independent NumPy reference layer.
 
@@ -211,7 +211,7 @@ python -m pytest -q
 
 The tests cover the G(4,1) metric signature, null-basis identities, outer-product antisymmetry, inverses and duality, conformal distance encoding, sphere incidence, point normalization, point-pair extraction, projective constructions, special isosceles-locus boundaries, two-link and three-link kinematic constraints, the three-link representation singularity, tripod stability, and agreement between the revised CGA constructions and independent reference solutions.
 
-GitHub Actions runs the same tests on every push and pull request and also executes a reduced end-to-end smoke run of the reproducibility pipeline.
+GitHub Actions runs the same tests on every push and pull request, executes a reduced end-to-end reproducibility run, and checks numerical invariants such as residual bounds, zero isosceles-count mismatches, the tripod stability-sign change, and the revised three-link error threshold.
 
 ## Reproducing the Numerical Study
 
