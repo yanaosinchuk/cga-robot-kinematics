@@ -1,6 +1,6 @@
 name: refresh-audited-artifacts
 
-# Final post-audit rebuild from current main.
+# Final post-audit rebuild from the orthogonality-audited main branch.
 
 on:
   push:
