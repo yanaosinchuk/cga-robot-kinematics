@@ -150,8 +150,8 @@ def test_revised_tripod_cga_matches_reference_solution():
     )
     actual = constructions.tripod_revised()
 
-    np.testing.assert_allclose(actual["spitze"], reference.selected, atol=1e-13)
-    np.testing.assert_allclose(actual["aussen"], reference.info["Q_out"], atol=1e-13)
+    np.testing.assert_allclose(actual["apex"], reference.selected, atol=1e-13)
+    np.testing.assert_allclose(actual["outer_foot"], reference.info["Q_out"], atol=1e-13)
 
 def test_isosceles_count_matches_construction_near_special_heights():
     p1 = np.array([-1.0, 0.0])
