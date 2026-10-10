@@ -313,7 +313,7 @@ The report reads its numerical macros from `../results/results.tex` and its gene
 
 This repository grew out of geometry and geometric-algebra coursework in the B.Sc. Applied Mathematics program at Hochschule Darmstadt.
 
-The practical coursework was initially organised in a group setting, but the code, written implementation, numerical validation, and repository material published here were produced by Yana Osinchuk. The accompanying paper documents the tool-use context and the subsequent mathematical review and validation explicitly.
+The code, written implementation, numerical validation, technical report, and repository material published here were produced independently by Yana Osinchuk.
 
 ## License and Citation
 
