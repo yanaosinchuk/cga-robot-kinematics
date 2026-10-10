@@ -1114,10 +1114,12 @@ into the following components:
         revised forms;
   \item \texttt{tests/}: automated regression tests for the $G(4,1)$
         algebraic identities, conformal embedding and distance relations,
-        point-pair extraction, projective constructions, kinematic constraints,
-        tripod stability, special isosceles-locus heights, the three-link
-        representation singularity, and agreement between the revised CGA
-        constructions and independent reference solutions.
+        point-pair extraction, projective constructions under translation and
+        scaling, kinematic reachability and tangency boundaries, deterministic
+        vertical-axis fallback, tripod stability, special isosceles-locus
+        heights, the three-link representation singularity, and agreement
+        between the revised CGA constructions and independent reference
+        solutions.
 \end{itemize}
 This yields a cross-implementation validation: the constructions are executed
 in the CGA engine, while their residuals and selected solutions are checked
@@ -1380,8 +1382,8 @@ revisions reproduced in \cref{app:programs}.
     Aufgabe 2 & The perpendiculars are called ``bisectors''; the ideal point $S_1$ is printed but not verified. & Naming corrected; scale-aware ideal test; residuals of the foot. \\
     Aufgabe 4 & Tangency and coincidences are not reported, so the equilateral apex is drawn three times; $P_0$ on the base line is not detected; fixed drawing window. & Classification per locus (\cref{prop:isosceles}), merging of coincident apices, degeneracy test, data-driven window. \\
     Hausaufgabe 1 & The apex \texttt{Spitze} is selected, but legs and the fourth sphere use \texttt{N\_Pp2}, and the last leg is drawn to \texttt{N\_Pp4} instead of \texttt{AußenPunkt}; whether this is correct depends on the ordering of the pair (\cref{lem:pointpair}). Duplicated header, non-ASCII identifiers. & Selected points used throughout; header cleaned; ASCII identifiers. \\
-    Hausaufgabe 2 & Helper plane undefined for targets on the vertical axis; the vertical coordinate does not distinguish the two fallback-plane elbows there; sliders reach $d>2$ without a reachability test. & Orientation-based helper fallback, deterministic $+x$ tie-break, and classification by the sign of $P\cdot P$ before factorisation. \\
-    Hausaufgabe 3 & Correctness relies on the implicit order of \texttt{N\_Pp1}, \texttt{N\_Pp2}; at $d=1$ one auxiliary point coincides with the shoulder, so the corresponding bisector plane degenerates. & $W_+$ chosen by distance; $E_1$ by the reflection \cref{eq:reflection}. \\
+    Hausaufgabe 2 & Helper plane undefined for targets on the vertical axis; the vertical coordinate does not distinguish the two fallback-plane elbows there; the coincident target $d=0$ is non-unique; sliders reach $d>2$ without a reachability test. & Explicit $d=0$ degeneracy check, orientation-based helper fallback, deterministic $+x$ tie-break, and classification by the sign of $P\cdot P$ before factorisation. \\
+    Hausaufgabe 3 & Correctness relies on the implicit order of \texttt{N\_Pp1}, \texttt{N\_Pp2}; at $d=1$ one auxiliary point coincides with the shoulder, so the corresponding bisector plane degenerates; at $d=0$ the target direction is undefined. & Explicit $d=0$ degeneracy check; $W_+$ chosen by distance; $E_1$ by the reflection \cref{eq:reflection}. \\
     All CLUCalc & Normalisation by multiplication with $-X\cdot\einf$; correct only because the weight is $\pm1$. & Division by the weight $-X\cdot\einf$. \\
     \bottomrule
   \end{tabularx}
