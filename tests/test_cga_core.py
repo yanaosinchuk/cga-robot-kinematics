@@ -128,3 +128,13 @@ def test_tangent_pointpair_extracts_one_unique_point():
     assert len(points) == 1
     np.testing.assert_allclose(points[0], [1.0, 0.0, 0.0], atol=1e-12)
 
+def test_geometric_product_is_associative_for_random_multivectors():
+    rng = np.random.default_rng(42)
+    for _ in range(20):
+        A = cga.MV(rng.normal(size=cga.DIM))
+        B = cga.MV(rng.normal(size=cga.DIM))
+        C = cga.MV(rng.normal(size=cga.DIM))
+        lhs = (A * B) * C
+        rhs = A * (B * C)
+        np.testing.assert_allclose(lhs.c, rhs.c, atol=2e-13, rtol=2e-13)
+
