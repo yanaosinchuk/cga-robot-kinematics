@@ -156,3 +156,22 @@ def test_inverse_is_scale_invariant_for_non_null_blade():
     identity = blade * blade.inverse()
     np.testing.assert_allclose(identity.c, cga.MV.blade(0).c, atol=1e-12)
 
+def test_pointpair_extraction_is_set_invariant_under_global_sign():
+    x = np.array([-0.4, 0.8, 1.2])
+    y = np.array([1.1, -0.2, 0.3])
+    pair = cga.VecN3(*x) ^ cga.VecN3(*y)
+
+    _, _, p1, p2 = cga.pointpair_extract_homework(pair)
+    _, _, q1, q2 = cga.pointpair_extract_homework(-pair)
+
+    extracted = sorted((tuple(np.round(cga.euclid(p1), 12)),
+                        tuple(np.round(cga.euclid(p2), 12))))
+    flipped = sorted((tuple(np.round(cga.euclid(q1), 12)),
+                      tuple(np.round(cga.euclid(q2), 12))))
+    expected = sorted((tuple(np.round(x, 12)), tuple(np.round(y, 12))))
+
+    assert extracted == expected
+    assert flipped == expected
+    np.testing.assert_allclose(cga.euclid(p1), cga.euclid(q2), atol=1e-12)
+    np.testing.assert_allclose(cga.euclid(p2), cga.euclid(q1), atol=1e-12)
+
