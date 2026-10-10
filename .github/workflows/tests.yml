@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt
 
+      - name: Compile-check Python sources
+        run: python -m compileall -q src projective_geometry tests
+
       - name: Run tests
         env:
           MPLBACKEND: Agg
