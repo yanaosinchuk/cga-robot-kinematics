@@ -395,12 +395,12 @@ def _prepare_kinematic_inputs(O, T, up):
 
 
 def _in_plane_perp(u, up, projection_tol_sq: float = 1e-12):
-    """Preferred transverse direction for a motion plane.
+    """Preferred unit direction perpendicular to `u` in the motion plane.
 
-    The preferred `up` direction is projected orthogonally to the target
-    direction.  If that projection is too small (target parallel to `up`), a
-    deterministic coordinate axis is used instead.  This mirrors the fallback
-    helper plane used by the revised CGA construction.
+    In 2D an exact quarter-turn avoids cancellation near the vertical axis.
+    In 3D cross products construct the transverse direction; when `up` is
+    nearly parallel to `u`, the least-aligned coordinate axis provides a
+    deterministic fallback.
     """
     u = np.asarray(u, float)
     up = np.asarray(up, float)
@@ -411,15 +411,23 @@ def _in_plane_perp(u, up, projection_tol_sq: float = 1e-12):
         raise ValueError("up direction must be non-zero")
     up_hat = up / up_norm
 
-    p = up_hat - (up_hat @ u) * u
-    if p @ p <= projection_tol_sq:
-        axis = np.eye(u.size)[int(np.argmin(np.abs(u)))]
-        p = axis - (axis @ u) * u
+    if u.size == 2:
+        p = np.array([-u[1], u[0]])
+        alignment = p @ up_hat
+        if abs(alignment) <= np.sqrt(projection_tol_sq):
+            return p if p[0] >= 0.0 else -p
+        return p if alignment > 0.0 else -p
 
-    pn = np.linalg.norm(p)
-    if pn == 0.0:
+    normal = np.cross(u, up_hat)
+    nn2 = normal @ normal
+    if nn2 <= projection_tol_sq:
+        axis = np.eye(u.size)[int(np.argmin(np.abs(u)))]
+        normal = np.cross(u, axis)
+        nn2 = normal @ normal
+
+    if nn2 == 0.0:
         raise ValueError("could not construct a transverse direction")
-    return p / pn
+    return np.cross(normal / np.sqrt(nn2), u)
 
 def two_link(O, T, l1=1.0, l2=1.0, up=None, tau: float = 1e-12) -> ConstructionResult:
     """Elbow of a planar/spatial two-link arm in the motion plane spanned by T-O and `up`."""
