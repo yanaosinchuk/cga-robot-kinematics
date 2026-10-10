@@ -23,10 +23,18 @@ SetMode(N3_OPNS);
 :Bodenplatte = 4*(U^X^Y^einf) : Color(0.35, 0.0, 0.1, 0.3);
 
 // vertical helper plane through U and A (fallback on the vertical axis)
-if (a*a + c*c > 0.000001)
-{H = VecN3(0,1,0)}
+d2 = a*a + b*b + c*c;
+radial2 = a*a + c*c;
+if (radial2 > 0.000000000001*d2)
+{
+  H = VecN3(0,1,0);
+  BranchAxis = 2;              // e2: prefer the upper branch
+}
 else
-{H = VecN3(1,0,0)}
+{
+  H = VecN3(1,0,0);
+  BranchAxis = 1;              // e1: deterministic fallback on the vertical axis
+}
 :HE = 10*(U^H^A^einf) : Color(0.96, 0.90, 0.70, 0.3);
 
 // auxiliary points W+- on the line UA at distance 1 from A
@@ -61,11 +69,21 @@ else
   N_Pp21 = Pp21 / (-(Pp21 . einf));
   N_Pp22 = Pp22 / (-(Pp22 . einf));
 
-  // policy: upper configuration
-  if (N_Pp21 . e2 > N_Pp22 . e2)
-  {elbow2 = N_Pp21}
+  // policy: upper configuration; on the vertical axis use the +x branch.
+  if (BranchAxis == 2)
+  {
+    if (N_Pp21 . e2 > N_Pp22 . e2)
+    {elbow2 = N_Pp21}
+    else
+    {elbow2 = N_Pp22}
+  }
   else
-  {elbow2 = N_Pp22}
+  {
+    if (N_Pp21 . e1 > N_Pp22 . e1)
+    {elbow2 = N_Pp21}
+    else
+    {elbow2 = N_Pp22}
+  }
 
   // E1: reflection of E2 in the bisector plane of U and A
   M = U - A;
