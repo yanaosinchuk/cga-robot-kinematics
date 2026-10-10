@@ -77,8 +77,9 @@ def collinear(a, b, c, tau: float = 1e3 * EPS) -> bool:
 # ---- Task P1: circumcircle ------------------------------------------------
 def circumcircle(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P = [np.asarray(v, float) for v in (P0, P1, P2)]
-    span = max(1.0, *(np.linalg.norm(P[i] - P[j]) for i in range(3) for j in range(i)))
-    if any(np.linalg.norm(P[i] - P[j]) <= tau * span for i in range(3) for j in range(i)):
+    pair_distances = [np.linalg.norm(P[i] - P[j]) for i in range(3) for j in range(i)]
+    span = max(pair_distances)
+    if span == 0.0 or any(distance <= tau * span for distance in pair_distances):
         return ConstructionResult("degenerate", info={"reason": "repeated input point"})
     if collinear(*P, tau=tau):
         # distinct collinear points have their circumcentre at infinity
@@ -103,8 +104,9 @@ def circumcircle(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
 # ---- Task P2: perpendicular foot through an ideal point --------------------
 def perpendicular_foot(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P0, P1, P2 = (np.asarray(v, float) for v in (P0, P1, P2))
-    scale = max(1.0, np.linalg.norm(P2 - P0), np.linalg.norm(P2 - P1))
-    if np.linalg.norm(P1 - P0) <= tau * scale:
+    base_length = np.linalg.norm(P1 - P0)
+    scale = max(base_length, np.linalg.norm(P2 - P0), np.linalg.norm(P2 - P1))
+    if base_length == 0.0 or base_length <= tau * scale:
         return ConstructionResult("degenerate", info={"reason": "P0 and P1 coincide"})
 
     p0, p1, p2 = (hpoint(*v) for v in (P0, P1, P2))
@@ -132,8 +134,8 @@ def isosceles_candidates(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     P0, P1, P2 = (np.asarray(v, float) for v in (P0, P1, P2))
     u = P2 - P1
     d = np.linalg.norm(u)
-    base_scale = max(1.0, np.linalg.norm(P0 - P1), np.linalg.norm(P0 - P2))
-    if d <= tau * base_scale:
+    base_scale = max(d, np.linalg.norm(P0 - P1), np.linalg.norm(P0 - P2))
+    if d == 0.0 or d <= tau * base_scale:
         return ConstructionResult("degenerate", info={"reason": "P1 and P2 coincide"})
 
     u_hat = u / d
@@ -216,7 +218,8 @@ def trilaterate(c, r, tau: float = 1e-12) -> ConstructionResult:
     B = w @ n
     Cq = w @ w - r[0] ** 2
     disc = B * B - Cq
-    disc_tol = tau * max(1.0, r[0] ** 2, w @ w)
+    disc_scale = max(r[0] ** 2, float(w @ w), np.finfo(float).tiny)
+    disc_tol = tau * disc_scale
     if disc < -disc_tol:
         return ConstructionResult("empty", info={"disc": disc})
     if abs(disc) <= disc_tol:
@@ -242,7 +245,8 @@ def sphere_plane_circle(centre, radius, plane_point, plane_normal, tau: float = 
         raise ValueError("plane normal must be non-zero")
     n = n / nn
     dist = (np.asarray(centre, float) - np.asarray(plane_point, float)) @ n
-    tol = tau * max(1.0, radius)
+    scale = max(radius, abs(dist), np.finfo(float).tiny)
+    tol = tau * scale
     if abs(dist) > radius + tol:
         return None
     r2 = radius ** 2 - dist ** 2
@@ -273,7 +277,8 @@ def circle_plane_points(circ, plane_point, plane_normal, tau: float = 1e-12):
     s = ((np.asarray(plane_point, float) - cc) @ m) / denom
     base = cc + s * v
     q = rr ** 2 - s ** 2
-    tol = tau * max(1.0, rr ** 2)
+    q_scale = max(rr ** 2, s ** 2, np.finfo(float).tiny)
+    tol = tau * q_scale
     if q < -tol:
         return []
     root = np.sqrt(max(q, 0.0))
@@ -341,8 +346,10 @@ def tripod(A, B, C, rA, rB, rC, r4, up=np.array([0.0, 1.0, 0.0])):
 
     # helper plane tau: vertical plane through A and the two apex branches
     S_minus = min(tri.candidates, key=lambda x: x @ up)
-    tau_n = np.cross(S_plus - np.asarray(A, float), S_minus - np.asarray(A, float))
-    if np.linalg.norm(tau_n) <= 1e-12:
+    va = S_plus - np.asarray(A, float)
+    vb = S_minus - np.asarray(A, float)
+    tau_n = np.cross(va, vb)
+    if np.linalg.norm(tau_n) <= 1e-12 * np.linalg.norm(va) * np.linalg.norm(vb):
         return ConstructionResult("degenerate", tri.candidates, S_plus,
                                   info={"reason": "helper plane undefined at tangent apex"})
 
