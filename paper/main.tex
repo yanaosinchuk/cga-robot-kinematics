@@ -841,8 +841,11 @@ In three dimensions their intersection is generally a circle. A helper plane
 through $O$ and $T$ fixes the intended motion plane, and the circle--plane meet
 is a point pair $E_+\wedge E_-$. This mirrors the CLUCalc source directly, which
 uses the vertical plane through $O$, the point $Z=(0,1,0)$, and $T$
-(\texttt{U\^{}Z\^{}A\^{}einf}). That plane is undefined when $T$ lies on the vertical axis through $O$, a degeneracy that the
-revised program handles with a fallback direction.
+(\texttt{U\^{}Z\^{}A\^{}einf}). That plane is undefined when $T$ lies on
+the vertical axis through $O$. The revised program detects this case using the
+orientation ratio $(a^2+c^2)/(a^2+b^2+c^2)$, switches to an $x$-axis helper,
+and uses the $+x$ branch as a deterministic tie-break because the two elbows
+then have the same vertical coordinate.
 
 In a two-dimensional chart of the helper plane, let $d=\norm{T-O}$,
 $u=(T-O)/d$, and let $u_{\perp}$ be a unit vector perpendicular to $u$ in that
@@ -877,8 +880,10 @@ of $O$ and the second auxiliary point with $\Sph(T,1)$, and cuts both circles
 with the helper plane $\Pi$. The following proposition identifies the result.
 
 \begin{proposition}[Three-link construction]\label{prop:trapezoid}
-Let $0<d=\norm{T-O}\le 3$, let $u_\perp$ be the upward unit vector perpendicular
-to $u$ in $\Pi$, and let $E_1$, $E_2$ be the upper points of
+Let $0<d=\norm{T-O}\le 3$, let $u_\perp$ be the preferred transverse unit
+vector in $\Pi$ (upward whenever the vertical direction has a non-zero
+projection into the motion plane, with the deterministic $+x$ fallback on the
+vertical axis), and let $E_1$, $E_2$ be the corresponding points of
 \begin{equation}
   \bis(O,W_-)\cap\Sph(O,1)\cap\Pi
   \qquad\text{and}\qquad
@@ -927,9 +932,10 @@ obtained from one circle--plane meet, and $E_1$ by the reflection versor
 \end{equation}
 where $m$ is the IPNS bisector plane of $O$ and $T$. Reflections preserve the
 weight of a conformal point, so $E_1$ is again normalised. The revised
-construction is exact for all $0<d\le3$; its only remaining singularities are
-geometric: the direction $u$ is undefined at $d=0$, and the two branches merge
-at full extension $d=3$.
+construction is analytically exact for all $0<d\le3$; its only remaining
+geometric singularities are the undefined target direction at $d=0$ and the
+branch merger at full extension $d=3$. The implementation classifies the former
+explicitly and treats the latter as a tangent point pair.
 
 \begin{figure}[htbp]
   \centering
@@ -1374,7 +1380,7 @@ revisions reproduced in \cref{app:programs}.
     Aufgabe 2 & The perpendiculars are called ``bisectors''; the ideal point $S_1$ is printed but not verified. & Naming corrected; scale-aware ideal test; residuals of the foot. \\
     Aufgabe 4 & Tangency and coincidences are not reported, so the equilateral apex is drawn three times; $P_0$ on the base line is not detected; fixed drawing window. & Classification per locus (\cref{prop:isosceles}), merging of coincident apices, degeneracy test, data-driven window. \\
     Hausaufgabe 1 & The apex \texttt{Spitze} is selected, but legs and the fourth sphere use \texttt{N\_Pp2}, and the last leg is drawn to \texttt{N\_Pp4} instead of \texttt{AußenPunkt}; whether this is correct depends on the ordering of the pair (\cref{lem:pointpair}). Duplicated header, non-ASCII identifiers. & Selected points used throughout; header cleaned; ASCII identifiers. \\
-    Hausaufgabe 2 & Helper plane undefined for targets on the vertical axis; sliders reach $d>2$ without a reachability test. & Fallback direction; classification by the sign of $P\cdot P$ before factorisation. \\
+    Hausaufgabe 2 & Helper plane undefined for targets on the vertical axis; the vertical coordinate does not distinguish the two fallback-plane elbows there; sliders reach $d>2$ without a reachability test. & Orientation-based helper fallback, deterministic $+x$ tie-break, and classification by the sign of $P\cdot P$ before factorisation. \\
     Hausaufgabe 3 & Correctness relies on the implicit order of \texttt{N\_Pp1}, \texttt{N\_Pp2}; at $d=1$ one auxiliary point coincides with the shoulder, so the corresponding bisector plane degenerates. & $W_+$ chosen by distance; $E_1$ by the reflection \cref{eq:reflection}. \\
     All CLUCalc & Normalisation by multiplication with $-X\cdot\einf$; correct only because the weight is $\pm1$. & Division by the weight $-X\cdot\einf$. \\
     \bottomrule
