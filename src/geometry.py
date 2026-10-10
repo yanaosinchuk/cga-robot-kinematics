@@ -336,33 +336,42 @@ def stability_margin(support_xz, com_xz) -> float:
     return -best
 
 
-def tripod(A, B, C, rA, rB, rC, r4, up=np.array([0.0, 1.0, 0.0])):
-    """Apex from three spheres + fourth support (the CLUCalc task 1)."""
+def tripod(A, B, C, rA, rB, rC, r4, up=None):
+    """Apex from three spheres plus a fourth support candidate."""
+    A, B, C = (np.asarray(p, float) for p in (A, B, C))
+    if up is None:
+        up = np.array([0.0, 1.0, 0.0])
+    up = np.asarray(up, float)
+    if up.shape != (3,) or np.linalg.norm(up) == 0.0:
+        raise ValueError("up must be a non-zero 3D direction")
+    up = up / np.linalg.norm(up)
+
     tri = trilaterate([A, B, C], [rA, rB, rC])
     if tri.status in ("empty", "degenerate"):
         return tri
-    S_plus = select_max(tri.candidates, key=lambda x: x @ up)          # height policy
-    circ = sphere_plane_circle(S_plus, r4, np.asarray(A, float), up)
+
+    S_plus = select_max(tri.candidates, key=lambda x: x @ up)
+    circ = sphere_plane_circle(S_plus, r4, A, up)
     if circ is None:
         return ConstructionResult("empty", tri.candidates, S_plus,
                                   info={"reason": "fourth-leg sphere misses ground plane"})
 
-    # helper plane tau: vertical plane through A and the two apex branches
+    # Helper plane tau: vertical plane through A and the two apex branches.
     S_minus = min(tri.candidates, key=lambda x: x @ up)
-    va = S_plus - np.asarray(A, float)
-    vb = S_minus - np.asarray(A, float)
+    va, vb = S_plus - A, S_minus - A
     tau_n = np.cross(va, vb)
     if np.linalg.norm(tau_n) <= 1e-12 * np.linalg.norm(va) * np.linalg.norm(vb):
         return ConstructionResult("degenerate", tri.candidates, S_plus,
                                   info={"reason": "helper plane undefined at tangent apex"})
 
-    feet = circle_plane_points(circ, np.asarray(A, float), tau_n)
+    feet = circle_plane_points(circ, A, tau_n)
     if not feet:
         return ConstructionResult("empty", tri.candidates, S_plus,
                                   info={"reason": "no real fourth-support foot"})
-    Q_out = select_max(feet, key=lambda q: np.linalg.norm(q - np.asarray(A, float)))
+
+    Q_out = select_max(feet, key=lambda q: np.linalg.norm(q - A))
     legs = [(A, rA), (B, rB), (C, rC), (Q_out, r4)]
-    res = max(abs(np.linalg.norm(S_plus - np.asarray(p)) - r) for p, r in legs)
+    res = max(abs(np.linalg.norm(S_plus - p) - r) for p, r in legs)
     res = max(res, abs((Q_out - A) @ up))
     return ConstructionResult("regular", tri.candidates, S_plus, res,
                               {"S_minus": S_minus, "feet": feet, "Q_out": Q_out,
