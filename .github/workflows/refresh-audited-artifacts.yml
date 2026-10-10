@@ -1,5 +1,7 @@
 name: refresh-audited-artifacts
 
+# Final post-audit rebuild from current main.
+
 on:
   push:
 
