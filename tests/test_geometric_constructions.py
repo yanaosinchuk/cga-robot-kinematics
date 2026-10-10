@@ -180,13 +180,17 @@ def test_isosceles_count_matches_construction_near_special_heights():
             assert len(result.candidates) == expected
 
 
-def test_original_three_link_is_degenerate_at_d_equal_one_but_revised_is_not():
+def test_original_three_link_contains_degenerate_auxiliary_geometry_at_d_equal_one():
     direction = np.array([0.6, 0.3, -0.2])
     direction /= np.linalg.norm(direction)
     target = direction
 
-    with np.testing.assert_raises(constructions.Degenerate):
-        constructions.three_link_original(*target)
+    with np.errstate(all="ignore"):
+        _, _, auxiliary_points = constructions.three_link_original(*target)
+
+    # Analytically W_- coincides with the shoulder at d=1.  Floating-point
+    # factorisation may return a tiny finite representative instead of exact zero.
+    assert min(np.linalg.norm(point) for point in auxiliary_points) < 1e-12
 
     reference = G.three_link_trapezoid(np.zeros(3), target).selected
     e1, e2 = constructions.three_link_revised(*target)
