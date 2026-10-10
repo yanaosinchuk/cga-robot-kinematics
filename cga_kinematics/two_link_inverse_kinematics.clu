@@ -23,10 +23,18 @@ SetMode(N3_OPNS);
 :Bodenplatte = 4*(U^X^Y^einf) : Color(0.96, 0.90, 0.70, 0.6);
 
 // vertical helper plane through U and A
-if (a*a + c*c > 0.000001)
-{H = VecN3(0,1,0)}
+d2 = a*a + b*b + c*c;
+radial2 = a*a + c*c;
+if (radial2 > 0.000000000001*d2)
+{
+  H = VecN3(0,1,0);
+  BranchAxis = 2;              // e2: prefer the upper branch
+}
 else
-{H = VecN3(1,0,0)}
+{
+  H = VecN3(1,0,0);
+  BranchAxis = 1;              // e1: deterministic fallback on the vertical axis
+}
 :E = 8*(U^H^A^einf) : Color(0.0, 0.3, 0.2, 0.3);
 
 // circle of all possible elbows, then its meet with the helper plane
@@ -45,11 +53,22 @@ else
   N_Pp1 = Pp1 / (-(Pp1 . einf));
   N_Pp2 = Pp2 / (-(Pp2 . einf));
 
-  // policy: upper elbow (larger y)
-  if (N_Pp1 . e2 > N_Pp2 . e2)
-  {elbow = N_Pp1}
+  // policy: upper elbow; on the vertical axis both candidates have the same
+  // y-coordinate, so the helper-plane fallback selects the +x branch.
+  if (BranchAxis == 2)
+  {
+    if (N_Pp1 . e2 > N_Pp2 . e2)
+    {elbow = N_Pp1}
+    else
+    {elbow = N_Pp2}
+  }
   else
-  {elbow = N_Pp2}
+  {
+    if (N_Pp1 . e1 > N_Pp2 . e1)
+    {elbow = N_Pp1}
+    else
+    {elbow = N_Pp2}
+  }
   :elbow;
   ?elbow;
 
