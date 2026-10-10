@@ -1087,26 +1087,31 @@ not more precision.
 
 \subsection{Implementation and reproducibility}
 
-All experiments use Python~3.12, NumPy double precision, Matplotlib, and the
-fixed random seed \ExperimentSeed. The script \texttt{code/generate\_figures.py}
-creates every reported number, all table entries, and all plots from a clean
-checkout; no value was transcribed by hand. The code consists of four modules:
+The experiments use Python, NumPy double precision, Matplotlib, and the fixed
+random seed \ExperimentSeed. The current automated workflow is tested with
+Python~3.11. The script \texttt{src/generate\_figures.py} creates every
+reported number, all table entries, and all plots from a clean checkout; no
+reported numerical value is transcribed by hand. The implementation is divided
+into the following components:
 \begin{itemize}
-  \item \texttt{cga.py}: a self-contained implementation of $\GA$ with $32$
-        coefficients per multivector, geometric, outer and inner products,
+  \item \texttt{src/cga.py}: a self-contained implementation of $\GA$ with
+        $32$ coefficients per multivector, geometric, outer and inner products,
         inverse, dual $A^*=AI^{-1}$, and CLUCalc counterparts
         (\texttt{VecN3}, \texttt{SphereN3}, meet, point-pair factorisation);
-  \item \texttt{geometry.py}: closed-form Euclidean and projective reference
-        solutions of all six tasks, returning structured results
+  \item \texttt{src/geometry.py}: closed-form Euclidean and projective
+        reference solutions of all six tasks, returning structured results
         (status, candidates, selection, residual);
-  \item \texttt{homework\_cga.py}: line-by-line transcriptions of the three
-        CLUCalc programs in their original and revised form;
-  \item \texttt{tests/}: twelve unit tests, including the execution of the
-        revised \texttt{libcfcg} programs against a headless stand-in of the
-        library.
+  \item \texttt{src/cga\_constructions.py}: executable NumPy/CGA
+        transcriptions of the three CLUCalc constructions in their original and
+        revised forms;
+  \item \texttt{tests/}: eleven automated tests for the conformal embedding,
+        projective constructions, kinematic constraints, tripod stability, and
+        agreement between the revised CGA constructions and the independent
+        reference solutions.
 \end{itemize}
-This yields a cross-implementation validation: the constructions come from the
-source programs, while the residuals are evaluated by independent formulas.
+This yields a cross-implementation validation: the constructions are executed
+in the CGA engine, while their residuals and selected solutions are checked
+against independent Euclidean and projective formulas.
 
 \subsection{Experiment 1: projective covariance}
 
@@ -1678,19 +1683,25 @@ revised Aufgabe~4, the locus classification of \cref{prop:isosceles}, reads:
 \section{Reproducibility}\label{app:reproducibility}
 % =============================================================================
 
-The accompanying archive contains the manuscript, the bibliography, all
-figures, the experiment code with its unit tests, the original task archives,
-and the revised programs. From the root directory,
+The repository contains the manuscript, bibliography, generated figures,
+numerical results, Python implementation, automated tests, CLUCalc scripts, and
+the projective-geometry programs. From the repository root,
 \begin{lstlisting}[language=bash,numbers=none]
-python3 code/generate_figures.py          # all numbers, tables, figures (about 1 min)
-python3 -m unittest discover -s code/tests -v
+pip install -r requirements-dev.txt
+python -m pytest -q
+python src/generate_figures.py
+cd paper
 latexmk -pdf main.tex
 \end{lstlisting}
-recreate the numerical results and the paper. Setting \texttt{FAST=1} runs a
-reduced smoke version of the experiments; only the full run is used in this
-paper. The file \texttt{generated/results.json} records every reported value in
-machine-readable form. Small last-digit differences may occur when a platform
-evaluates floating-point operations in a different order.
+recreate the automated checks, numerical results, figures, and paper. Setting
+\texttt{FAST=1} before the figure-generation command runs a reduced smoke
+version of the experiments; only the full run is used for the reported
+numerical ledger. The file \texttt{results/results.json} records every
+reported value in machine-readable form. The scripts in
+\texttt{projective\_geometry/} additionally require the course-specific
+\texttt{libcfcg} teaching library, which is not bundled with the repository.
+Small last-digit differences may occur when a platform evaluates
+floating-point operations in a different order.
 
 \clearpage
 \bibliographystyle{plainnat}
