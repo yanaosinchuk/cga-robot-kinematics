@@ -86,4 +86,5 @@ def test_pointpair_extraction_recovers_two_sphere_intersections():
     for point in points:
         assert abs(np.linalg.norm(point) - 1.0) < 1e-12
         assert abs(np.linalg.norm(point - np.array([1.0, 0.0, 0.0])) - 1.0) < 1e-12
-        assert abs(point[2]) < 1e-12
+        assert abs(point[0] - 0.5) < 1e-12
+        assert abs(point[1]) < 1e-12
