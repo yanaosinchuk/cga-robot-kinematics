@@ -206,8 +206,7 @@ cga-robot-kinematics/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-├── requirements-dev.txt
-└── LICENSE
+└── requirements-dev.txt
 ~~~
 
 ## Figures
@@ -313,4 +312,4 @@ The accompanying paper records the collaboration and tool-use context of the ori
 ## Author
 
 **Yana Osinchuk**  
-B.Sc. Applied Mathematics, Hochschule Darmstadt
+Applied Mathematics, Hochschule Darmstadt
