@@ -280,3 +280,51 @@ def test_reference_kinematics_reject_nonpositive_link_lengths():
     assert two.status == "degenerate"
     assert three.status == "degenerate"
 
+def test_circumcircle_distinguishes_repeated_from_collinear_points():
+    repeated = G.circumcircle(
+        np.array([0.0, 0.0]),
+        np.array([0.0, 0.0]),
+        np.array([1.0, 1.0]),
+    )
+    collinear = G.circumcircle(
+        np.array([0.0, 0.0]),
+        np.array([1.0, 1.0]),
+        np.array([2.0, 2.0]),
+    )
+
+    assert repeated.status == "degenerate"
+    assert collinear.status == "ideal"
+
+
+def test_projective_degeneracy_checks_are_translation_invariant():
+    shift = np.array([1e12, -1e12])
+    foot = G.perpendicular_foot(
+        shift + np.array([0.0, 0.0]),
+        shift + np.array([1.0, 0.0]),
+        shift + np.array([0.25, 2.0]),
+    )
+    iso = G.isosceles_candidates(
+        shift + np.array([0.0, 1.0]),
+        shift + np.array([-1.0, 0.0]),
+        shift + np.array([1.0, 0.0]),
+    )
+
+    assert foot.status == "regular"
+    assert iso.status in {"regular", "reduced"}
+
+
+def test_trilateration_rejects_invalid_radii_and_classifies_tangent():
+    with np.testing.assert_raises(ValueError):
+        G.trilaterate(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            [1.0, -1.0, 1.0],
+        )
+
+    # Three spheres whose unique common point is the origin.
+    tangent = G.trilaterate(
+        [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-1.0, 0.0, 0.0]],
+        [1.0, 1.0, 1.0],
+    )
+    assert tangent.status == "tangent"
+    np.testing.assert_allclose(tangent.candidates[0], [0.0, 0.0, 0.0], atol=1e-12)
+
