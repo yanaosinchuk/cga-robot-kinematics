@@ -141,7 +141,7 @@ def isosceles_candidates(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
             cands += [(label + " (tangent)", centre_t)]
     merged: list[tuple[str, float]] = []
     for lab, t in sorted(cands, key=lambda c: c[1]):
-        if merged and abs(t - merged[-1][1]) <= 1e-9 * d:
+        if merged and abs(t - merged[-1][1]) <= tau * d:
             merged[-1] = (merged[-1][0] + " = " + lab, merged[-1][1])
         else:
             merged.append((lab, t))
@@ -156,16 +156,11 @@ def isosceles_candidates(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     return ConstructionResult(status, pts, None, res, {"h": h, "d": d})
 
 
-def isosceles_count(
-    h_over_d: float,
-    tau: float = 1e-12,
-    merge_tol: float = 1e-9,
-) -> int:
+def isosceles_count(h_over_d: float, tau: float = 1e-12) -> int:
     """Number of distinct candidates as a function of |h|/d.
 
-    The tolerances mirror isosceles_candidates: tau controls the
-    degenerate/tangent classification, while merge_tol controls merging
-    of the equilateral coincidence.
+    The tolerance mirrors isosceles_candidates so that only numerically
+    indistinguishable geometric coincidences are merged.
     """
     x = abs(h_over_d)
     if x <= tau:
@@ -178,7 +173,7 @@ def isosceles_count(
         return 3
 
     s = np.sqrt(max(disc, 0.0))
-    if abs(s - 0.5) <= merge_tol:
+    if abs(s - 0.5) <= tau:
         return 3
 
     return 5
