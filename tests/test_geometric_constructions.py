@@ -152,3 +152,51 @@ def test_revised_tripod_cga_matches_reference_solution():
 
     np.testing.assert_allclose(actual["spitze"], reference.selected, atol=1e-13)
     np.testing.assert_allclose(actual["aussen"], reference.info["Q_out"], atol=1e-13)
+
+def test_isosceles_count_matches_construction_near_special_heights():
+    p1 = np.array([-1.0, 0.0])
+    p2 = np.array([1.0, 0.0])
+    d = np.linalg.norm(p2 - p1)
+
+    ratios = [
+        0.0,
+        0.5,
+        np.sqrt(3.0) / 2.0,
+        np.sqrt(3.0) / 2.0 + 5e-10,
+        0.999999,
+        1.0,
+        1.000001,
+        1.2,
+    ]
+
+    for ratio in ratios:
+        p0 = np.array([0.3, ratio * d])
+        result = G.isosceles_candidates(p0, p1, p2)
+        expected = G.isosceles_count(ratio)
+
+        if result.status == "degenerate":
+            assert expected == 0
+        else:
+            assert len(result.candidates) == expected
+
+
+def test_original_three_link_has_representation_singularity_at_d_equal_one():
+    direction = np.array([0.6, 0.3, -0.2])
+    direction /= np.linalg.norm(direction)
+    target = direction
+
+    failed = False
+    try:
+        with np.errstate(all="ignore"):
+            e1, e2, _ = constructions.three_link_original(*target)
+        failed = not (np.all(np.isfinite(e1)) and np.all(np.isfinite(e2)))
+    except Exception:
+        failed = True
+
+    assert failed
+
+    reference = G.three_link_trapezoid(np.zeros(3), target).selected
+    e1, e2 = constructions.three_link_revised(*target)
+    np.testing.assert_allclose(e1, reference[0], atol=1e-13)
+    np.testing.assert_allclose(e2, reference[1], atol=1e-13)
+
