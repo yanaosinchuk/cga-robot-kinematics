@@ -156,15 +156,31 @@ def isosceles_candidates(P0, P1, P2, tau: float = 1e-12) -> ConstructionResult:
     return ConstructionResult(status, pts, None, res, {"h": h, "d": d})
 
 
-def isosceles_count(h_over_d: float) -> int:
-    """Number of distinct candidates as a function of |h|/d (Proposition 1)."""
+def isosceles_count(
+    h_over_d: float,
+    tau: float = 1e-12,
+    merge_tol: float = 1e-9,
+) -> int:
+    """Number of distinct candidates as a function of |h|/d.
+
+    The tolerances mirror isosceles_candidates: tau controls the
+    degenerate/tangent classification, while merge_tol controls merging
+    of the equilateral coincidence.
+    """
     x = abs(h_over_d)
-    if x == 0:
+    if x <= tau:
         return 0
-    if x > 1:
+
+    disc = 1.0 - x * x
+    if disc < -tau:
         return 1
-    if np.isclose(x, 1.0) or np.isclose(x, np.sqrt(3) / 2):
+    if abs(disc) <= tau:
         return 3
+
+    s = np.sqrt(max(disc, 0.0))
+    if abs(s - 0.5) <= merge_tol:
+        return 3
+
     return 5
 
 
