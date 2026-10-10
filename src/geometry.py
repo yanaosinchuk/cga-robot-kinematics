@@ -59,7 +59,10 @@ def dehom(p) -> np.ndarray:
 
 def rho_inc(l, p) -> float:
     """Scale-invariant incidence residual |l^T p| / (||l|| ||p||)."""
-    return abs(l @ p) / (np.linalg.norm(l) * np.linalg.norm(p))
+    denominator = np.linalg.norm(l) * np.linalg.norm(p)
+    if denominator == 0.0:
+        return float("inf")
+    return abs(l @ p) / denominator
 
 
 def orient2d(a, b, c) -> float:
